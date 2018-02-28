@@ -1,0 +1,6 @@
+[package]
+name = "argentum"
+version = "0.1.0"
+authors = ["Alejandro Gaviria <mr.gaviria@gmail.com>"]
+
+[dependencies]
