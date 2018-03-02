@@ -1,6 +1,7 @@
 [package]
+authors = ["Alejandro Gaviria <mr.gaviria@gmail.com>"]
 name = "argentum"
 version = "0.1.0"
-authors = ["Alejandro Gaviria <mr.gaviria@gmail.com>"]
 
 [dependencies]
+getopts = "0.2.17"
