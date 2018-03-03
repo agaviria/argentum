@@ -1,4 +1,5 @@
 extern crate getopts;
+extern crate itertools;
 
 use std::env;
 use std::fs::File;
@@ -30,7 +31,8 @@ fn process_file<F>(input_path: &str, log_error: F) where F: Fn(&str) -> () {
     // Create a scanner over the input.
     let _scanner = scanner::Scanner::new(input_path, &buf);
 
-    // TODO: parse input into an abstract syntax list form.
+    // TODO: parse scan would be called here.  See scanner.rs todo comment!
+    //
     // For now, we just exit the process as good citizens.
     std::process::exit(1);
 }
