@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate log;
+extern crate env_logger;
 extern crate getopts;
 extern crate itertools;
 
@@ -20,6 +23,9 @@ fn print_version() {
 }
 
 fn main() {
+    env_logger::init();
+    debug!("Logger mechanism initialized...");
+
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
 
