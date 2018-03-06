@@ -1,5 +1,5 @@
-#[derive(Debug, PartialEq)]
-pub enum Token {
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum TokenKind {
     // Single character tokens.
     LeftParen,
     RightParen,
@@ -22,8 +22,8 @@ pub enum Token {
     Less,
     LessEqual,
     // Literals.
-    Identifier(String),
-    StrLiteral(String),
+    Identifier(usize),
+    StrLiteral(usize),
     NumLiteral(f64),
     // Keywords.
     And,
