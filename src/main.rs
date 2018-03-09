@@ -3,6 +3,10 @@ extern crate log;
 extern crate env_logger;
 extern crate getopts;
 extern crate itertools;
+#[macro_use]
+extern crate pest;
+#[macro_use]
+extern crate pest_derive;
 
 use std::env;
 
@@ -12,6 +16,7 @@ pub mod errors;
 pub mod scanner;
 pub mod utils;
 pub mod token;
+pub mod parser;
 
 fn print_usage(program: &str, opts: Options) {
     let brief = format!("USAGE: {} [options] <input>", program);

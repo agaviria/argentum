@@ -39,56 +39,56 @@ impl error::Error for ParseError {
     }
 }
 
-impl From<ParseError> for InputError {
+impl From<ParseError> for ProcessError {
     fn from(err: ParseError) -> Self {
-        InputError::ParseError(err)
+        ProcessError::ParseError(err)
     }
 }
 
 // Wrapper for many kinds of errors
 #[derive(Debug)]
-pub enum InputError {
+pub enum ProcessError {
     IOError(io::Error),
     ParseError(ParseError),
 }
 
-impl fmt::Display for InputError {
+impl fmt::Display for ProcessError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            InputError::IOError(ref err) => write!(f, "Input Error: {}", err),
-            InputError::ParseError(ref err) => write!(f, "EOF: {}", err),
+            ProcessError::IOError(ref err) => write!(f, "Input Error: {}", err),
+            ProcessError::ParseError(ref err) => write!(f, "EOF: {}", err),
         }
     }
 }
 
-impl error::Error for InputError {
+impl error::Error for ProcessError {
     fn description(&self) -> &str {
         match *self {
-            InputError::IOError(ref err) => err.description(),
-            InputError::ParseError(ref err) => err.description(),
+            ProcessError::IOError(ref err) => err.description(),
+            ProcessError::ParseError(ref err) => err.description(),
         }
     }
 
     fn cause(&self) -> Option<&error::Error> {
         match *self {
-            InputError::IOError(ref err) => Some(err),
-            InputError::ParseError(ref err) => Some(err),
+            ProcessError::IOError(ref err) => Some(err),
+            ProcessError::ParseError(ref err) => Some(err),
         }
     }
 }
 
 // Convert everything else into Error
 //
-impl From<io::Error> for InputError {
+impl From<io::Error> for ProcessError {
     fn from(err: io::Error) -> Self {
-        InputError::IOError(err)
+        ProcessError::IOError(err)
     }
 }
 
 // Convert Error into a general IO Error
 //
-impl From<InputError> for io::Error {
-    fn from(err: InputError) -> Self {
+impl From<ProcessError> for io::Error {
+    fn from(err: ProcessError) -> Self {
         io::Error::new(io::ErrorKind::Other, err)
     }
 }
