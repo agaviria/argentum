@@ -1,6 +1,6 @@
-// keywords
+// Reserved Keywords
 keyword_nil = {"nil"} // nil
-keyword_cn = {"const"} // constant
+keyword_cn  = {"const"} // constant
 keyword_szo = {"sizeof"} // size info operator; determines the size of value type.
 keyword_typ = {"typeof"} // type info operator; determines the system value type.
 
@@ -8,165 +8,164 @@ keyword_typ = {"typeof"} // type info operator; determines the system value type
 // process and prevents an optimizing compiler from modifying the use of the field.
 keyword_vl = {"volatile"}
 
-// alphabetic
-alpha = { 'a'..'z' | 'A'..'Z' } // alphabet
-ident = @{ (alpha | "_") ~ (alpha | digit)* } // identifier
+alpha      = { 'a'..'z' | 'A'..'Z' } // Alphabet
+ident      = @{ (alpha | "_") ~ (alpha | digit)* } // Identifier
 
-// single character tokens
-lparen = _{"("} // left parenthese
-rparen = _{")"} // right parenthese
-lbrace = _{"{"} // left brace
-rbrace = _{"}"} // right brace
-lsq = _{"["} // left square bracket
-rsq = _{"["} // right square bracket
-comma = _{","} // comma operator
-dot = _{"."} // dot operator
+// Single character tokens
+lparen     = _{"("} // left parenthese
+rparen     = _{")"} // right parenthese
+lbrace     = _{"{"} // left brace
+rbrace     = _{"}"} // right brace
+lsq        = _{"["} // left square bracket
+rsq        = _{"["} // right square bracket
+comma      = _{","} // comma operator
+dot        = _{"."} // dot operator
 semi_colon = _{";"} // semi-colon operator
-elect_op = _{"="} // elect operator
-expoll_op = _{"?"} // exception poll operator
-ptr_op = {"*"} // pointer operator
-addr_op = {"&"} // address operator
-deref_op = {"*"} // de-reference operator
-uplus_op = {"+"} // unary plus operator
-uminus_op = {"-"} // unary minus operator
-bw_com_op = {"~"} // bit wise complement operator, inverts binary rep of an exp.
+elect_op   = _{"="} // elect operator
+expoll_op  = _{"?"} // exception poll operator
+ptr_op     = {"*"} // pointer operator
+addr_op    = {"&"} // address operator
+deref_op   = {"*"} // de-reference operator
+uplus_op   = {"+"} // unary plus operator
+uminus_op  = {"-"} // unary minus operator
+bw_com_op  = {"~"} // bit wise complement operator, inverts binary rep of an exp.
 arr_inc_op = {"+"} // array increment operator
 
-// arithmetic operators
-plus_op = {"+"}
+// Arithmetic operators
+plus_op  = {"+"}
 minus_op = {"-"}
 multi_op = {"*"}
-div_op = {"/"}
-mod_op = {"%"}
+div_op   = {"/"}
+mod_op   = {"%"}
 
-plus_elect_op = {"+="} // plus elect operator
-minus_elect_op = {"-="} // minus elect operator
-multi_elect_op = {"*="} // multiply elect operator
-div_elect_op = {"/="} // divide elect operator
-mod_elect_op = {"%="} // modulus elect operator
-lshft_elect_op = {"<<="} // left shift elect operator
-rshft_elect_op = {">>="} // right shift elect operator
-bw_or_elect_op = {"|="} // bit wise or elect operator
-bw_and_elect_op = {"&="} // bit wise and elect operator
-bw_xor_elect_op = {"^="} // bit wise exclusive or operator
+plus_elect_op   = {"+="} // add on elect operator
+minus_elect_op  = {"-="} // subtract on elect operator
+multi_elect_op  = {"*="} // multiply on elect operator
+div_elect_op    = {"/="} // divide on elect operator
+mod_elect_op    = {"%="} // modulus on elect operator
+lshft_elect_op  = {"<<="} // left shift elect operator
+rshft_elect_op  = {">>="} // right shift elect operator
+bw_or_elect_op  = {"|="} // bit-wise or, on elect operator
+bw_and_elect_op = {"&="} // bit-wise and, on elect operator
+bw_xor_elect_op = {"^="} // bit-wise exclusive or, on operator
 
-qwt = {"\""} // quote (")
-sqwt = {"'"} // single quote (')
+qwt             = {"\""} // quote (")
+sqwt            = {"'"} // single quote (')
 
-// one or two character tokens
-inc_op = {"++"} // increment operator
-dec_op = {"--"} // decrement operator
+// One or two character tokens
+inc_op     = {"++"} // increment operator
+dec_op     = {"--"} // decrement operator
 ng_bool_op = {"!"} // negate boolean operator
-eq_op = {"=="} // equal operator
-not_eq_op = {"!="} // not equal operator
-gt_op = {">"} // greater than operator
-gteq_op = {">="} // greater than or equal operator
-lt_op = {"<"} // less than operator
-lteq_op = {"<="} // less than or equal operator
-lshft_op = {"<<"} // left shift operator
-rshft_op = {">>"} // right shift operator
-rng_op = { ".." } // range operator
-cast_op = {"->"} // cast operator
-bw_and = {"&"} // bit wise and operator
-bw_or = {"|"} // bit wise or operator
-bw_xor = {"^"} // bit wise exclusive or operator
+eq_op      = {"=="} // equal operator
+not_eq_op  = {"!="} // not equal operator
+gt_op      = {">"} // greater than operator
+gt_eq_op   = {">="} // greater than or equal operator
+lt_op      = {"<"} // less than operator
+lt_eq_op   = {"<="} // less than or equal operator
+lshft_op   = {"<<"} // left shift operator
+rshft_op   = {">>"} // right shift operator
+rng_op     = { ".." } // range operator
+cast_op    = {"->"} // cast operator
+bw_and     = {"&"} // bit wise and operator
+bw_or      = {"|"} // bit wise or operator
+bw_xor     = {"^"} // bit wise exclusive or operator
 
-and = {"&&"} // logical and operator
-or = {"||"} // logical or operator
+and        = {"&&"} // logical and operator
+or         = {"||"} // logical or operator
 
-// literals
-t_literal = { "true" } // true literal
-f_literal = { "false" } // false literal
-str_literal = ${ qwt ~ inner_str ~ qwt }
+// Literals
+t_literal    = { "true" } // true literal
+f_literal    = { "false" } // false literal
+str_literal  = ${ qwt ~ inner_str ~ qwt }
 char_literal = ${ sqwt ~ inner_char ~ sqwt }
 
-inner_str = @{ (!("\"" | "\\") ~ any)* ~ (escape ~ inner_str)? }
-inner_char = @{ escape | any }
+inner_str    = @{ (!("\"" | "\\") ~ any)* ~ (escape ~ inner_str)? }
+inner_char   = @{ escape | any }
 
 // Types
 str_type = { (keyword_cn | keyword_vl)? ~ (prims | symbol ) ~ ptr_op* ~ idx* }
 prims = {
-  "void"|
-  "str" |
+  "void" |
+  "str"  |
   "bool" |
-  "i8" |
-  "u8" |
-  "i16" |
-  "u16" |
-  "i32" |
-  "u32" |
-  "i64" |
-  "u64" |
-  "f32" |
+  "i8"   |
+  "u8"   |
+  "i16"  |
+  "u16"  |
+  "i32"  |
+  "u32"  |
+  "i64"  |
+  "u64"  |
+  "f32"  |
   "f64"
 }
 
-// primary expression
+// Primary expression
 pexp = { ident | num_literal | str_literal | char_literal | (lparen ~ exp ~ rparen) }
 
-// prefix expression
+// Prefix expression
 pfexp = { pexp ~
   ( params
-  | (lsq ~ exp ~ rsq)
-  | (lsq ~ integer ~ comma ~ integer ~ rsq)
-  | (dot ~ ident)
-  | (inc_op | dec_op)
+    | (lsq ~ exp ~ rsq)
+    | (lsq ~ integer ~ comma ~ integer ~ rsq)
+    | (dot ~ ident)
+    | (inc_op | dec_op)
   )*
 }
 
-// unary expression
+// Unary expression
 uexp = { pfexp
        | ((inc_op | dec_op) ~ uexp)
        | (elops ~ cast)
        | ((keyword_szo | keyword_typ) ~ (uexp | lparen ~ str_type ~ rparen))
 }
 
-cast = { (lparen ~ cast_op ~ str_type ~ rparen)? ~ uexp }
-mexp = { cast ~ ((multi_op | div_op | mod_op) ~ cast)* } // multiplicative expression
-aexp = { mexp ~ ((plus_op | minus_op) ~ mexp)* } // addition expression
-sexp = { aexp ~ ((lshft_op | rshft_op) ~ aexp)* }
-rexp = { sexp ~ ((lteq_op | gteq_op | lt_op | gt_op) ~ sexp)* } // relation expression
-eexp = { rexp ~ ((eq_op | not_eq_op) ~ rexp)* } // equivalence expression
+cast  = { (lparen ~ cast_op ~ str_type ~ rparen)? ~ uexp }
+mexp  = { cast ~ ((multi_op | div_op | mod_op) ~ cast)* } // multiplicative expression
+aexp  = { mexp ~ ((plus_op | minus_op) ~ mexp)* } // addition expression
+sexp  = { aexp ~ ((lshft_op | rshft_op) ~ aexp)* } // shift expresion
+rexp  = { sexp ~ ((lt_eq_op | gt_eq_op | lt_op | gt_op) ~ sexp)* } // relation expression
+eexp  = { rexp ~ ((eq_op | not_eq_op) ~ rexp)* } // equivalence expression
 coexp = { bexp ~(expoll_op ~ bexp ~ comma ~ bexp)* } // conditional expression
 bwexp = { eexp ~ ((bw_or | bw_xor | bw_and) ~ eexp)* } // bit-wise expression
-bexp = { bwexp ~ ((and | or) ~ bwexp)* } // boolean expression
+bexp  = { bwexp ~ ((and | or) ~ bwexp)* } // boolean expression
 asexp = { coexp ~ (elops ~ asexp)* } // assignment expression
 
-exp = { asexp ~ (comma ~ asexp)* }
+exp   = { asexp ~ (comma ~ asexp)* } // expression : generic
 
-// parameters
+// Parameters
 params = { lparen ~ (coexp ~ (comma ~ coexp)*)? ~ rparen }
 
-// list of all elect operators
+// List of all elect operators
 elops = {
-  plus_elect_op |
-  minus_elect_op |
-  multi_elect_op |
-  mod_elect_op |
-  lshft_elect_op |
-  rshft_elect_op |
+  plus_elect_op   |
+  minus_elect_op  |
+  multi_elect_op  |
+  mod_elect_op    |
+  lshft_elect_op  |
+  rshft_elect_op  |
   bw_and_elect_op |
-  bw_or_elect_op |
+  bw_or_elect_op  |
   bw_xor_elect_op |
   elect_op
 }
 
-// list of unary operators
+// List of unary operators
 uops = {
-  bw_com_op |
-  addr_op |
-  deref_op |
+  bw_com_op  |
+  addr_op    |
+  deref_op   |
   ng_bool_op |
-  uplus_op |
+  uplus_op   |
   uminus_op
 }
 
 // numbers
-integer = @{ ("+" | "-")? ~ int }
-float   = @{ ("+" | "-")? ~ int ~ ("." ~ digits ~ exp? | exp)? }
-int     = @{ "0" | ('1'..'9' ~ digits?) }
-digits  = @{ (digit | ("_" ~ digit))+ }
-digit   =  { '0'..'9' }
+integer     = @{ ("+" | "-")? ~ int }
+float       = @{ ("+" | "-")? ~ int ~ ("." ~ digits ~ exp? | exp)? }
+int         = @{ "0" | ('1'..'9' ~ digits?) }
+digits      = @{ (digit | ("_" ~ digit))+ }
+digit       = { '0'..'9' }
 
 num_literal = { integer | float }
 
@@ -174,17 +173,17 @@ num_literal = { integer | float }
 bool = { t_literal | f_literal }
 
 // silent details
-newline = _{ "\n" | "\r\n" }
-whitespace = _{ " " | "\t" | "\u{00C}" | newline }
+newline       = _{ "\n" | "\r\n" }
+whitespace    = _{ " " | "\t" | "\u{00C}" | newline }
 block_comment = @{ "/*" ~ (!"*/" ~ any)* ~ "*/" }
-line_comment = @{ "//" ~ (!newline ~ any)* }
-comment = ${ block_comment | line_comment }
+line_comment  = @{ "//" ~ (!newline ~ any)* }
+comment       = ${ block_comment | line_comment }
 
 // trivia
-escape = @{ "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t" | unicode) }
-unicode = @{ "u" ~ hex ~ hex ~ hex ~ hex | "U" ~ hex ~ hex ~ hex ~ hex ~ hex ~ hex ~ hex ~ hex }
-hex = { '0'..'9' | 'a'..'f' |'A'..'F' }
-symbol = { (ident ~ dot)? ~ ident }
+escape   = @{ "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t" | unicode) }
+unicode  = @{ "u" ~ hex ~ hex ~ hex ~ hex | "U" ~ hex ~ hex ~ hex ~ hex ~ hex ~ hex ~ hex ~ hex }
+hex      = { '0'..'9' | 'a'..'f' |'A'..'F' }
+symbol   = { (ident ~ dot)? ~ ident }
 
-idx = { lsq ~ ( arr_inc_op | exp )? ~ rsq } // index
+idx      = { lsq ~ ( arr_inc_op | exp )? ~ rsq } // index
 constant = { keyword_nil | ident | num_literal | str_literal | char_literal }
