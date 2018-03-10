@@ -161,10 +161,10 @@ uops = {
 }
 
 // numbers
-integer     = @{ ("+" | "-")? ~ int }
+integer     = { ^"e" ~ ("+" | "-")? ~ int } // includes exponent
 int         = { digit ~ (digit | "_")* }
 digit       = _{ '0'..'9' }
-float       = { int ~ "." ~ int? ~ exp? | int ~ exp }
+float       = { int ~ "." ~ int? ~ integer? | int ~ integer }
 
 num_literal = { integer | float }
 
