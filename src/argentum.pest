@@ -27,6 +27,8 @@ ptr_op     = {"*"} // pointer operator
 addr_op    = {"&"} // address operator
 deref_op   = {"*"} // de-reference operator
 uplus_op   = {"+"} // unary plus operator
+plus       = {"+"} // plus exponent
+minus      = {"-"} // minus exponent
 uminus_op  = {"-"} // unary minus operator
 bw_com_op  = {"~"} // bit wise complement operator, inverts binary rep of an exp.
 arr_inc_op = {"+"} // array increment operator
@@ -107,7 +109,7 @@ pexp = { ident | num_literal | str_literal | char_literal | (lparen ~ exp ~ rpar
 pfexp = { pexp ~
   ( params
     | (lsq ~ exp ~ rsq)
-    | (lsq ~ integer ~ comma ~ integer ~ rsq)
+    | (lsq ~ int ~ comma ~ int ~ rsq)
     | (dot ~ ident)
     | (inc_op | dec_op)
   )*
@@ -161,12 +163,12 @@ uops = {
 }
 
 // numbers
-integer     = { ^"e" ~ ("+" | "-")? ~ int } // includes exponent
+expo        = { ^"e" ~ (plus | minus)? ~ int } // exponent
 int         = { digit ~ (digit | "_")* }
 digit       = _{ '0'..'9' }
-float       = { int ~ "." ~ int? ~ integer? | int ~ integer }
+float       = { int ~ "." ~ int? ~ expo? | int ~ expo }
 
-num_literal = { integer | float }
+num_literal = { int | float }
 
 // booleans
 bool = { t_literal | f_literal }
@@ -181,7 +183,7 @@ comment       = ${ block_comment | line_comment }
 // trivia
 escape   = @{ "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t" | unicode) }
 unicode  = @{ "u" ~ hex ~ hex ~ hex ~ hex | "U" ~ hex ~ hex ~ hex ~ hex ~ hex ~ hex ~ hex ~ hex }
-hex      = { '0'..'9' | 'a'..'f' |'A'..'F' }
+hex      = _{ '0'..'9' | 'a'..'f' |'A'..'F' }
 symbol   = { (ident ~ dot)? ~ ident }
 
 idx      = { lsq ~ ( arr_inc_op | exp )? ~ rsq } // index

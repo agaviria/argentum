@@ -109,3 +109,56 @@ fn zero_dot_zero() {
         ]
     };
 }
+
+#[test]
+fn one_exp() {
+    parses_to! {
+        parser: SilverParser,
+        input: "1e10",
+        rule: Rule::float,
+        tokens: [
+            float(0, 4, [
+                  int(0, 1),
+                  expo(1, 4, [
+                       int(2, 4)
+                  ])
+            ])
+        ]
+    };
+}
+
+#[test]
+fn zero_point_exp() {
+    parses_to! {
+        parser: SilverParser,
+        input: "0.e0",
+        rule: Rule::float,
+        tokens: [
+            float(0, 4, [
+                  int(0, 1),
+                  expo(2, 4, [
+                       int(3, 4)
+                  ])
+            ])
+        ]
+    };
+}
+
+#[test]
+fn zero_point_zero_exp_plus() {
+    parses_to! {
+        parser: SilverParser,
+        input: "0.0e+0",
+        rule: Rule::float,
+        tokens: [
+            float(0, 6, [
+                  int(0, 1),
+                  int(2, 3),
+                  expo(3, 6, [
+                       plus(4, 5),
+                       int(5, 6)
+                  ])
+            ])
+        ]
+    };
+}
