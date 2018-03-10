@@ -162,10 +162,9 @@ uops = {
 
 // numbers
 integer     = @{ ("+" | "-")? ~ int }
-float       = @{ ("+" | "-")? ~ int ~ ("." ~ digits ~ exp? | exp)? }
-int         = @{ "0" | ('1'..'9' ~ digits?) }
-digits      = @{ (digit | ("_" ~ digit))+ }
-digit       = { '0'..'9' }
+int         = { digit ~ (digit | "_")* }
+digit       = _{ '0'..'9' }
+float       = { int ~ "." ~ int? ~ exp? | int ~ exp }
 
 num_literal = { integer | float }
 

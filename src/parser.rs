@@ -33,13 +33,79 @@ fn f_literal() {
     };
 }
 
-//expressions - here be dragons, lmao
-//parser(uop);        parser(asop);   //unary operators;          assignment operators
-//parser(pexp);       parser(pfexp);  //primary expression;       prefix expression
-//parser(params);     parser(cast);   //function call parameters; cast expression
-//parser(uexp);       parser(mexp);   //unary expression;         multiplicative expression
-//parser(aexp);       parser(sexp);   //addition expression;      shift expression
-//parser(rexp);       parser(eexp);   //relation expression;      equivalence expression
-//parser(bexp);       parser(lexp);   //bit-wise expression;      boolean expression
-//parser(elexp);      parser(asexp);  //conditional expression;   assignment expression
-//parser(cexp); parser(exp); //constant expression;      expression (cheers!)
+#[test]
+fn zero() {
+    parses_to! {
+        parser: SilverParser,
+        input: "0",
+        rule: Rule::int,
+        tokens: [
+            int(0, 1)
+        ]
+    };
+}
+
+#[test]
+fn starts_with_zero() {
+    parses_to! {
+        parser: SilverParser,
+        input: "01",
+        rule: Rule::int,
+        tokens: [
+            int(0, 2)
+        ]
+    };
+}
+
+#[test]
+fn zero_with_underscores() {
+    parses_to! {
+        parser: SilverParser,
+        input: "0___",
+        rule: Rule::int,
+        tokens: [
+            int(0, 4)
+        ]
+    };
+}
+
+#[test]
+fn million() {
+    parses_to! {
+        parser: SilverParser,
+        input: "1_000_000",
+        rule: Rule::int,
+        tokens: [
+            int(0, 9)
+        ]
+    };
+}
+
+#[test]
+fn zero_dot() {
+    parses_to! {
+        parser: SilverParser,
+        input: "0.",
+        rule: Rule::float,
+        tokens: [
+            float(0, 2, [
+                  int(0, 1)
+            ])
+        ]
+    };
+}
+
+#[test]
+fn zero_dot_zero() {
+    parses_to! {
+        parser: SilverParser,
+        input: "0.0",
+        rule: Rule::float,
+        tokens: [
+            float(0, 3, [
+                  int(0, 1),
+                  int(2, 3)
+            ])
+        ]
+    };
+}
