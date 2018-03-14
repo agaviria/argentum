@@ -1,3 +1,7 @@
+use pest;
+use pest::Parser;
+use pest::iterators::Pairs;
+
 #[cfg(debug_assertions)]
 const _GRAMMAR: &'static str = include_str!("argentum.pest");
 
@@ -5,36 +9,48 @@ const _GRAMMAR: &'static str = include_str!("argentum.pest");
 #[grammar = "argentum.pest"]
 pub struct SilverParser;
 
+/// Error encountered while decoding Silver data.
+#[derive(Debug)]
+pub enum ParseError<'i> {
+    Pest(pest::Error<'i, Rule>),
+}
+
+/// Parse Silver data contained in a string slice.
+pub fn parse(input: &str) -> Result<Pairs<Rule>, ParseError> {
+    // TODO: need to implement a toplevel rule in silverparser.
+    SilverParser::parse(Rule::top_lvl, input).map_err(|error| ParseError::Pest(error))
+}
+
 #[test]
-fn t_literal() {
+fn bool_literal_true() {
     parses_to! {
         parser: SilverParser,
         input: "true",
-        rule: Rule::bool,
+        rule: Rule::bool_literal,
         tokens: [
-            bool(0, 4, [
-                 t_literal(0, 4)
+            bool_literal(0, 4, [
+                         bool_true(0, 4)
             ])
         ]
     };
 }
 
 #[test]
-fn f_literal() {
+fn bool_literal_false() {
     parses_to! {
         parser: SilverParser,
         input: "false",
-        rule: Rule::bool,
+        rule: Rule::bool_literal,
         tokens: [
-            bool(0, 5, [
-                 f_literal(0, 5)
+            bool_literal(0, 5, [
+                         bool_false(0, 5)
             ])
         ]
     };
 }
 
 #[test]
-fn zero() {
+fn int_zero() {
     parses_to! {
         parser: SilverParser,
         input: "0",
@@ -46,7 +62,7 @@ fn zero() {
 }
 
 #[test]
-fn starts_with_zero() {
+fn int_start_with_zero() {
     parses_to! {
         parser: SilverParser,
         input: "01",
@@ -58,7 +74,7 @@ fn starts_with_zero() {
 }
 
 #[test]
-fn zero_with_underscores() {
+fn int_with_zero_and_underscores() {
     parses_to! {
         parser: SilverParser,
         input: "0___",
@@ -70,7 +86,7 @@ fn zero_with_underscores() {
 }
 
 #[test]
-fn million() {
+fn int_one_million() {
     parses_to! {
         parser: SilverParser,
         input: "1_000_000",
@@ -82,83 +98,147 @@ fn million() {
 }
 
 #[test]
-fn zero_dot() {
+fn float_zero_dot() {
     parses_to! {
         parser: SilverParser,
         input: "0.",
-        rule: Rule::float,
+        rule: Rule::float_literal,
         tokens: [
-            float(0, 2, [
-                  int(0, 1)
-            ])
+            float_literal(0, 2)
         ]
     };
 }
 
 #[test]
-fn zero_dot_zero() {
+fn float_zero_dot_zero() {
     parses_to! {
         parser: SilverParser,
         input: "0.0",
-        rule: Rule::float,
+        rule: Rule::float_literal,
         tokens: [
-            float(0, 3, [
-                  int(0, 1),
-                  int(2, 3)
-            ])
+            float_literal(0, 3)
         ]
     };
 }
 
 #[test]
-fn one_exp() {
+fn float_one_dot_five_exponent() {
     parses_to! {
         parser: SilverParser,
-        input: "1e10",
-        rule: Rule::float,
+        input: "1.5e10",
+        rule: Rule::float_literal,
         tokens: [
-            float(0, 4, [
-                  int(0, 1),
-                  expo(1, 4, [
-                       int(2, 4)
-                  ])
-            ])
+            float_literal(0, 6)
         ]
     };
 }
 
 #[test]
-fn zero_point_exp() {
+fn float_zero_dot_zero_exp_plus() {
     parses_to! {
         parser: SilverParser,
-        input: "0.e0",
-        rule: Rule::float,
+        input: "0.0e-0",
+        rule: Rule::float_literal,
         tokens: [
-            float(0, 4, [
-                  int(0, 1),
-                  expo(2, 4, [
-                       int(3, 4)
-                  ])
-            ])
+            float_literal(0, 6)
         ]
     };
 }
 
 #[test]
-fn zero_point_zero_exp_plus() {
+fn escape_with_new_line_sequence() {
     parses_to! {
         parser: SilverParser,
-        input: "0.0e+0",
-        rule: Rule::float,
+        input: r#"\n"#,
+        rule: Rule::escape,
         tokens: [
-            float(0, 6, [
-                  int(0, 1),
-                  int(2, 3),
-                  expo(3, 6, [
-                       plus(4, 5),
-                       int(5, 6)
-                  ])
+            escape(0, 2)
+        ]
+    };
+
+}
+
+#[test]
+fn escape_with_carriage_return_sequence() {
+    parses_to! {
+        parser: SilverParser,
+        input: r#"\r"#,
+        rule: Rule::escape,
+        tokens: [
+            escape(0, 2)
+        ]
+    };
+
+}
+
+#[test]
+fn escape_with_horizontal_tab_sequence() {
+    parses_to! {
+        parser: SilverParser,
+        input: r#"\t"#,
+        rule: Rule::escape,
+        tokens: [
+            escape(0, 2)
+        ]
+    };
+}
+
+#[test]
+fn escape_with_vertical_tab_sequence() {
+    parses_to! {
+        parser: SilverParser,
+        input: r#"\v"#,
+        rule: Rule::escape,
+        tokens: [
+            escape(0, 2)
+        ]
+    };
+}
+
+#[test]
+fn escape_with_null_sequence() {
+    parses_to! {
+        parser: SilverParser,
+        input: r#"\0"#,
+        rule: Rule::escape,
+        tokens: [
+            escape(0, 2, [
+                   octal_escape(0, 2, [
+                                digit_octal(1, 2)
+                   ])
             ])
         ]
     };
+
+}
+
+#[test]
+fn escape_with_hex_representation() {
+    parses_to! {
+        parser: SilverParser,
+        input: r#"\x08"#,
+        rule: Rule::escape,
+        tokens: [
+            escape(0, 4, [
+                   hex_escape(0, 4, [
+                              hex(2, 3),
+                              hex(3, 4)
+                   ])
+            ])
+        ]
+    };
+
+}
+
+#[test]
+fn escape_with_alert_sequence() {
+    parses_to! {
+        parser: SilverParser,
+        input: r#"\a"#,
+        rule: Rule::escape,
+        tokens: [
+            escape(0, 2)
+        ]
+    };
+
 }

@@ -3,10 +3,11 @@ extern crate log;
 extern crate env_logger;
 extern crate getopts;
 extern crate itertools;
-#[macro_use]
+#[cfg_attr(test, macro_use)]
 extern crate pest;
 #[macro_use]
 extern crate pest_derive;
+extern crate rug;
 
 use std::env;
 
