@@ -1,6 +1,7 @@
 use pest;
 use pest::Parser;
 use pest::iterators::Pairs;
+// use parser::Rule::inner_str;
 
 #[cfg(debug_assertions)]
 const _GRAMMAR: &'static str = include_str!("argentum.pest");
@@ -249,7 +250,9 @@ fn char_without_escape() {
         input: "'A'",
         rule: Rule::char_literal,
         tokens: [
-            char_literal(0, 3)
+            char_literal(0, 3, [
+                         raw_char(1, 2)
+            ])
         ]
     };
 }
@@ -262,9 +265,57 @@ fn char_with_escape() {
         rule: Rule::char_literal,
         tokens: [
             char_literal(0, 4, [
-                         escape(1, 3),
+                         escape(1, 3)
             ])
         ]
+    };
+
+}
+
+#[test]
+fn string_without_escape() {
+    parses_to! {
+        parser: SilverParser,
+        input: "\"The Matrix\"",
+        rule: Rule::str_literal,
+        tokens: [
+            str_literal(0, 12, [
+                        raw_str(1, 11)
+            ])
+        ]
+    };
+
+}
+
+#[test]
+fn string_with_escape() {
+    parses_to! {
+        parser: SilverParser,
+        input: r#""a\nb\x0Fc\u2107Now""#,
+        rule: Rule::str_literal,
+        tokens: [
+            str_literal(0, 20, [
+                        raw_str(1, 2),
+                        escape(2, 4),
+                        raw_str(4, 5),
+                        escape(5, 9, [
+                               hex_escape(5, 9, [
+                                          hex(7, 8),
+                                          hex(8, 9)
+                               ])
+                        ]),
+                        raw_str(9, 10),
+                        escape(10, 16, [
+                               unicode_escape(10, 16, [
+                                              hex(12, 13),
+                                              hex(13, 14),
+                                              hex(14, 15),
+                                              hex(15, 16)
+                               ])
+                        ]),
+                        raw_str(16, 19)
+            ])
+            ]
     };
 
 }

@@ -79,8 +79,8 @@ bw_or_elect_op  = {"|="} // bit-wise or, on elect operator
 bw_and_elect_op = {"&="} // bit-wise and, on elect operator
 bw_xor_elect_op = {"^="} // bit-wise exclusive or, on operator
 
-qwt             = {"\""} // quote (")
-sqwt            = {"'"} // single quote (')
+qwt             = _{"\""} // quote (")
+sqwt            = _{"'"} // single quote (')
 
 // One or two character tokens
 expnt_op = {"**"} // exponent operator
@@ -139,11 +139,11 @@ literal = _{
 bool_true    = { "true" }
 bool_false   = { "false" }
 
-str_literal  = @{ qwt ~ (escape | inner_str)* ~ qwt }
-char_literal = @{ "'" ~ (!"'" ~ (escape | inner_char)) ~ sqwt }
+str_literal  = { qwt ~ (escape | raw_str)* ~ qwt }
+char_literal = { sqwt ~ (!"'" ~ (escape | raw_char)) ~ sqwt }
 
-inner_str    = { (!("\"" | "\\") ~ any)+  }
-inner_char   = @{ any }
+raw_str    = { (!("\"" | "\\") ~ any)+  }
+raw_char   = { any }
 
 // Types
 str_type = { (keyword_cn | keyword_vl)? ~ (prims | symbol ) ~ ptr_op* ~ idx* }
