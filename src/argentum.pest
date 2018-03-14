@@ -140,7 +140,7 @@ bool_true    = { "true" }
 bool_false   = { "false" }
 
 str_literal  = @{ qwt ~ (escape | inner_str)* ~ qwt }
-char_literal = ${ sqwt ~ (inner_char | escape) ~ sqwt }
+char_literal = @{ "'" ~ (!"'" ~ (escape | inner_char)) ~ sqwt }
 
 inner_str    = { (!("\"" | "\\") ~ any)+  }
 inner_char   = @{ any }

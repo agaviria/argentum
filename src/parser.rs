@@ -239,6 +239,32 @@ fn escape_with_alert_sequence() {
         tokens: [
             escape(0, 2)
         ]
+    }
+}
+
+#[test]
+fn char_without_escape() {
+    parses_to! {
+        parser: SilverParser,
+        input: "'A'",
+        rule: Rule::char_literal,
+        tokens: [
+            char_literal(0, 3)
+        ]
+    };
+}
+
+#[test]
+fn char_with_escape() {
+    parses_to! {
+        parser: SilverParser,
+        input: "'\\''",
+        rule: Rule::char_literal,
+        tokens: [
+            char_literal(0, 4, [
+                         escape(1, 3),
+            ])
+        ]
     };
 
 }
