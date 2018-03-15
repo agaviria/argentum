@@ -18,7 +18,6 @@ pub enum ParseError<'i> {
 
 /// Parse Silver data contained in a string slice.
 pub fn parse(input: &str) -> Result<Pairs<Rule>, ParseError> {
-    // TODO: need to implement a toplevel rule in silverparser.
     SilverParser::parse(Rule::top_lvl, input).map_err(|error| ParseError::Pest(error))
 }
 

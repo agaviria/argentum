@@ -33,7 +33,8 @@ keyword_typ = {"typeof"} // type info operator; determines the system value type
 keyword_vl = {"volatile"}
 
 alpha         = { 'a'..'z' | 'A'..'Z' } // Alphabet
-ident_literal = @{ (alpha | "_") ~ (alpha | digit)* ~ ("!" | "?")? } // Identifier
+identifier     = @{ (alpha | "_") ~ (alpha | digit)* ~ ("!" | "?")? }
+ident_literal = @{ !bool_literal ~ identifier }
 const_literal = @{ 'A'..'Z' ~ (alpha | digit)* }
 
 callable = _{
