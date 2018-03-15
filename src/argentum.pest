@@ -51,7 +51,6 @@ rsq        = _{"["} // right square bracket
 comma      = _{","} // comma operator
 dot        = _{"."} // dot operator
 semi_colon = _{";"} // semi-colon operator
-elect_op   = _{"="} // elect operator
 expoll_op  = _{"?"} // exception poll operator
 ptr_op     = {"*"} // pointer operator
 addr_op    = {"&"} // address operator
@@ -83,6 +82,7 @@ qwt             = _{"\""} // quote (")
 sqwt            = _{"'"} // single quote (')
 
 // One or two character tokens
+elect_op = {":="} // elect operator
 expnt_op = {"**"} // exponent operator
 inc_op   = {"++"} // increment operator
 dec_op   = {"--"} // decrement operator
@@ -145,22 +145,40 @@ char_literal = { sqwt ~ (!"'" ~ (escape | raw_char)) ~ sqwt }
 raw_str    = { (!("\"" | "\\") ~ any)+  }
 raw_char   = { any }
 
-// Types
-str_type = { (keyword_cn | keyword_vl)? ~ (prims | symbol ) ~ ptr_op* ~ idx* }
-prims = {
-  "void" |
-  "str"  |
-  "bool" |
-  "i8"   |
-  "u8"   |
-  "i16"  |
-  "u16"  |
-  "i32"  |
-  "u32"  |
-  "i64"  |
-  "u64"  |
-  "f32"  |
-  "f64"
+/// Types
+string = { (keyword_cn | keyword_vl)? ~ (prim_type | symbol ) ~ ptr_op* ~ idx* }
+
+char_type = { "char" }
+void_type = { "void" }
+str_type  = { "str"  }
+bool_type = { "bool" }
+i8_type   = { "i8" }
+u8_type   = { "u8" }
+i16_type  = { "i16" }
+u16_type  = { "u16" }
+i32_type  = { "i32" }
+u32_type  = { "u32" }
+i64_type  = { "i64" }
+u64_type  = { "u64" }
+f32_type  = { "f32" }
+f64_type  = { "f64" }
+
+// Primitive
+prim_type = {
+  void_type |
+  str_type  |
+  char_type |
+  bool_type |
+  i8_type   |
+  u8_type   |
+  i16_type  |
+  u16_type  |
+  i32_type  |
+  u32_type  |
+  i64_type  |
+  u64_type  |
+  f32_type  |
+  f64_type
 }
 
 // Primary expression
@@ -180,10 +198,10 @@ pfexp = { pexp ~
 uexp = { pfexp
        | ((inc_op | dec_op) ~ uexp)
        | (elops ~ cast)
-       | ((keyword_szo | keyword_typ) ~ (uexp | lparen ~ str_type ~ rparen))
+       | ((keyword_szo | keyword_typ) ~ (uexp | lparen ~ string ~ rparen))
 }
 
-cast  = { (lparen ~ cast_op ~ str_type ~ rparen)? ~ uexp }
+cast  = { (lparen ~ cast_op ~ string ~ rparen)? ~ uexp }
 mexp  = { cast ~ ((mult_op | div_op | mod_op) ~ cast)* } // multiplicative expression
 aexp  = { mexp ~ ((add_op | sub_op) ~ mexp)* } // addition expression
 sexp  = { aexp ~ ((lshft_op | rshft_op) ~ aexp)* } // shift expresion

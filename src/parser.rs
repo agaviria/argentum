@@ -319,3 +319,199 @@ fn string_with_escape() {
     };
 
 }
+
+#[test]
+fn typecheck_char() {
+    parses_to! {
+        parser: SilverParser,
+        input: "char",
+        rule: Rule::prim_type,
+        tokens: [
+            prim_type(0, 4, [
+                      char_type(0, 4)
+            ])
+        ]
+    };
+}
+
+#[test]
+fn typecheck_void() {
+    parses_to! {
+        parser: SilverParser,
+        input: "void",
+        rule: Rule::prim_type,
+        tokens: [
+            prim_type(0, 4, [
+                      void_type(0, 4)
+            ])
+        ]
+    };
+}
+
+#[test]
+fn typecheck_str() {
+    parses_to! {
+        parser: SilverParser,
+        input: "str",
+        rule: Rule::prim_type,
+        tokens: [
+            prim_type(0, 3, [
+                      str_type(0, 3)
+            ])
+        ]
+    };
+}
+
+#[test]
+fn typecheck_bool() {
+    parses_to! {
+        parser: SilverParser,
+        input: "bool",
+        rule: Rule::prim_type,
+        tokens: [
+            prim_type(0, 4, [
+                      bool_type(0, 4)
+            ])
+        ]
+    };
+}
+
+#[test]
+fn typecheck_i8() {
+    parses_to! {
+        parser: SilverParser,
+        input: "i8",
+        rule: Rule::prim_type,
+        tokens: [
+            prim_type(0, 2, [
+                      i8_type(0, 2)
+            ])
+        ]
+    };
+}
+
+#[test]
+fn typecheck_u8() {
+    parses_to! {
+        parser: SilverParser,
+        input: "u8",
+        rule: Rule::prim_type,
+        tokens: [
+            prim_type(0, 2, [
+                      u8_type(0, 2)
+            ])
+        ]
+    };
+}
+
+#[test]
+fn typecheck_i16() {
+    parses_to! {
+        parser: SilverParser,
+        input: "i16",
+        rule: Rule::prim_type,
+        tokens: [
+            prim_type(0, 3, [
+                      i16_type(0, 3)
+            ])
+        ]
+    };
+}
+
+#[test]
+fn typecheck_u16() {
+    parses_to! {
+        parser: SilverParser,
+        input: "u16",
+        rule: Rule::prim_type,
+        tokens: [
+            prim_type(0, 3, [
+                      u16_type(0, 3)
+            ])
+        ]
+    };
+}
+
+#[test]
+fn typecheck_u32() {
+    parses_to! {
+        parser: SilverParser,
+        input: "u32",
+        rule: Rule::prim_type,
+        tokens: [
+            prim_type(0, 3, [
+                      u32_type(0, 3)
+            ])
+        ]
+    };
+}
+
+#[test]
+fn typecheck_i32() {
+    parses_to! {
+        parser: SilverParser,
+        input: "i32",
+        rule: Rule::prim_type,
+        tokens: [
+            prim_type(0, 3, [
+                      i32_type(0, 3)
+            ])
+        ]
+    };
+}
+
+#[test]
+fn typecheck_f32() {
+    parses_to! {
+        parser: SilverParser,
+        input: "f32",
+        rule: Rule::prim_type,
+        tokens: [
+            prim_type(0, 3, [
+                      f32_type(0, 3)
+            ])
+        ]
+    };
+}
+
+#[test]
+fn typecheck_i64() {
+    parses_to! {
+        parser: SilverParser,
+        input: "i64",
+        rule: Rule::prim_type,
+        tokens: [
+            prim_type(0, 3, [
+                      i64_type(0, 3)
+            ])
+        ]
+    };
+}
+
+#[test]
+fn typecheck_u64() {
+    parses_to! {
+        parser: SilverParser,
+        input: "u64",
+        rule: Rule::prim_type,
+        tokens: [
+            prim_type(0, 3, [
+                      u64_type(0, 3)
+            ])
+        ]
+    };
+}
+
+#[test]
+fn typecheck_f64() {
+    parses_to! {
+        parser: SilverParser,
+        input: "f64",
+        rule: Rule::prim_type,
+        tokens: [
+            prim_type(0, 3, [
+                      f64_type(0, 3)
+            ])
+        ]
+    };
+}
