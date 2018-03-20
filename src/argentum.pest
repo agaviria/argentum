@@ -20,7 +20,9 @@
 // ------------------------------------------------/
 
 // Top-level main rule.
-top_lvl = { soi ~ (literal)* ~ eoi }
+top_lvl = { soi ~ (literal ~ statement)* ~ eoi }
+
+statement = { fn_dcl | dcl | (exp ~ semi_colon) | comment } // statement
 
 // Reserved Keywords
 keyword_nil = {"nil"} // nil
@@ -33,33 +35,42 @@ keyword_typ = {"typeof"} // type info operator; determines the system value type
 keyword_vl = {"volatile"}
 
 alpha         = { 'a'..'z' | 'A'..'Z' } // Alphabet
-identifier     = @{ (alpha | "_") ~ (alpha | digit)* ~ ("!" | "?")? }
+identifier     = @{ (alpha | "_") ~ (alpha | digit)* }
 ident_literal = @{ !bool_literal ~ identifier }
 const_literal = @{ 'A'..'Z' ~ (alpha | digit)* }
 
-callable = _{
-  property_access |
-  local_var_access
-}
+// Declarations
+arg_dcl = { ident_literal ~ type_dcl } // argument declaration
+args_dcl = { arg_dcl ~ (comma ~  arg_dcl)* | arg_dcl? } // multiple arguments
+type_dcl = { dcl_type_op ~ prim_type } // literal type declaration
+dcl = { "let" ~ ident_literal ~ type_dcl? ~ exp? ~ semi_colon } // declaration
+
+fn_call = { lparen ~ args_dcl ~ rparen }
+
+// function declaration
+fn_dcl = { "fn" ~ ident_literal ~ fn_call ~ (cast_op ~ type_dcl)? ~ code_block }
+
+code_block = _{ lbrace ~ (!fn_dcl ~ statement)* ~ exp ~ rbrace }
 
 // Single character tokens
-lparen     = _{"("} // left parenthese
-rparen     = _{")"} // right parenthese
-lbrace     = _{"{"} // left brace
-rbrace     = _{"}"} // right brace
-lsq        = _{"["} // left square bracket
-rsq        = _{"["} // right square bracket
-comma      = _{","} // comma operator
-dot        = _{"."} // dot operator
-semi_colon = _{";"} // semi-colon operator
-expoll_op  = _{"?"} // exception poll operator
-ptr_op     = {"*"} // pointer operator
-addr_op    = {"&"} // address operator
-deref_op   = {"*"} // de-reference operator
-plus       = {"+"} // plus
-minus      = {"-"} // minus
-bwcom_op   = {"~"} // bit wise complement operator, inverts binary rep of an exp.
-arr_inc_op = {"+"} // array increment operator
+lparen      = _{"("} // left parenthese
+rparen      = _{")"} // right parenthese
+lbrace      = _{"{"} // left brace
+rbrace      = _{"}"} // right brace
+lsq         = _{"["} // left square bracket
+rsq         = _{"["} // right square bracket
+comma       = _{","} // comma operator
+dot         = _{"."} // dot operator
+semi_colon  = _{";"} // semi-colon operator
+expoll_op   = _{"?"} // exception poll operator
+ptr_op      = {"*"} // pointer operator
+addr_op     = {"&"} // address operator
+deref_op    = {"*"} // de-reference operator
+plus        = {"+"} // plus
+minus       = {"-"} // minus
+bwcom_op    = {"~"} // bit wise complement operator, inverts binary rep of an exp.
+arr_inc_op  = {"+"} // array increment operator
+dcl_type_op = {":"} // declare type operator
 
 // Arithmetic operators
 add_op  = {"+"}
@@ -83,7 +94,7 @@ qwt             = _{"\""} // quote (")
 sqwt            = _{"'"} // single quote (')
 
 // One or two character tokens
-elect_op = {":="} // elect operator
+elect_op = {"="} // elect operator
 expnt_op = {"**"} // exponent operator
 inc_op   = {"++"} // increment operator
 dec_op   = {"--"} // decrement operator
