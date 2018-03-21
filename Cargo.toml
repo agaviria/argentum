@@ -4,9 +4,9 @@ name = "argentum"
 version = "0.1.0"
 
 [dependencies]
-env_logger = "0.5.4"
-getopts = "0.2.17"
 itertools = "0.7.6"
-log = "0.4.1"
 pest = "1.0.6"
-pest_derive =  "1.0.6"
+pest_derive = "1.0.6"
+rug = "1.0.1"
+
+[workspace]
