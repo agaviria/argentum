@@ -1,14 +1,36 @@
 use pest;
 use pest::Parser;
+use pest::prec_climber::{Assoc, Operator, PrecClimber};
 use pest::iterators::Pairs;
-// use parser::Rule::inner_str;
 
+// This include forces recompiling if grammar file changes.
 #[cfg(debug_assertions)]
 const _GRAMMAR: &'static str = include_str!("argentum.pest");
 
 #[derive(Parser)]
-#[grammar = "argentum.pest"]
+#[grammar = "parser/argentum.pest"]
 pub struct SilverParser;
+
+lazy_static! {
+    static ref ARITHMETICAL_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
+        vec![
+        Operator::new(Rule::add_op, Assoc::Left) | Operator::new(Rule::sub_op, Assoc::Left),
+        Operator::new(Rule::mult_op, Assoc::Left) |
+        Operator::new(Rule::div_op, Assoc::Left) |
+        Operator::new(Rule::mod_op, Assoc::Left),
+        ]);
+    static ref COMPARISON_EXPRESSION_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
+        vec![
+        Operator::new(Rule::lt_op, Assoc::Left) | Operator::new(Rule::lt_eq_op, Assoc::Left),
+        Operator::new(Rule::gt_op, Assoc::Left) | Operator::new(Rule::gt_eq_op, Assoc::Left),
+        Operator::new(Rule::eq_op, Assoc::Left) | Operator::new(Rule::neq_op, Assoc::Left),
+        ]);
+    static ref LOGIC_EXPRESSION_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
+        vec![
+        Operator::new(Rule::or_op, Assoc::Left),
+        Operator::new(Rule::and_op, Assoc::Left)
+        ]);
+}
 
 /// Error encountered while decoding Silver data.
 #[derive(Debug)]

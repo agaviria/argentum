@@ -22,7 +22,8 @@
 // Top-level main rule.
 top_lvl = { soi ~ (literal ~ statement)* ~ eoi }
 
-statement = { fn_dcl | dcl | (exp ~ semi_colon) | comment } // statement
+// statement_old = { fn_dcl | dcl | (pexp ~ semi_colon) | comment } // statement
+statement = { fn_dcl | (pexp ~ semi_colon) | comment } // statement
 
 // Reserved Keywords
 keyword_nil = {"nil"} // nil
@@ -34,23 +35,28 @@ keyword_typ = {"typeof"} // type info operator; determines the system value type
 // process and prevents an optimizing compiler from modifying the use of the field.
 keyword_vl = {"volatile"}
 
-alpha         = { 'a'..'z' | 'A'..'Z' } // Alphabet
-identifier     = @{ (alpha | "_") ~ (alpha | digit)* }
+alpha         = _{ 'a'..'z' | 'A'..'Z' } // Alphabet
+identifier    = _{ (alpha | "_") ~ (alpha | digit)* }
 ident_literal = @{ !bool_literal ~ identifier }
 const_literal = @{ 'A'..'Z' ~ (alpha | digit)* }
 
 // Declarations
-arg_dcl = { ident_literal ~ type_dcl } // argument declaration
-args_dcl = { arg_dcl ~ (comma ~  arg_dcl)* | arg_dcl? } // multiple arguments
-type_dcl = { dcl_type_op ~ prim_type } // literal type declaration
-dcl = { "let" ~ ident_literal ~ type_dcl? ~ exp? ~ semi_colon } // declaration
+arg_dcl = { ident_literal ~ type_dcl } // single argument declaration
 
-fn_call = { lparen ~ args_dcl ~ rparen }
+// args_dcl_old = { arg_dcl ~ (comma ~  arg_dcl)* | arg_dcl? } // multiple arguments
+
+args_dcl = { arg_dcl? ~ (arg_dcl ~ comma)* } // zero or multiple arguments
+type_dcl = { dcl_type_op ~ prim_type } // literal type declaration
+dcl = { "let" ~ ident_literal ~ type_dcl? ~ pexp? ~ semi_colon } // declaration
+
+fn_call = { lparen ~ args_dcl? ~ rparen }
 
 // function declaration
-fn_dcl = { "fn" ~ ident_literal ~ fn_call ~ (cast_op ~ type_dcl)? ~ code_block }
+fn_dcl_old = { "fn" ~ ident_literal ~ fn_call ~ (cast_op ~ type_dcl)? ~ code_block* }
 
-code_block = _{ lbrace ~ (!fn_dcl ~ statement)* ~ exp ~ rbrace }
+fn_dcl = { "fn" ~ ident_literal ~ lparen ~ (arg_dcl ~ comma)* ~ arg_dcl? ~ rparen ~ (cast_op ~ prim_type)? ~ lbrace ~ (!fn_dcl ~ statement)* ~ rbrace }
+
+code_block = _{ lbrace ~ (!fn_dcl ~ statement)* ~ pexp ~ rbrace }
 
 // Single character tokens
 lparen      = _{"("} // left parenthese
@@ -102,9 +108,9 @@ not_op   = {"!"} // negate boolean operator
 eq_op    = {"=="} // equal operator
 neq_op   = {"!="} // not equal operator
 gt_op    = {">"} // greater than operator
-gteq_op  = {">="} // greater than or equal operator
+gt_eq_op  = {">="} // greater than or equal operator
 lt_op    = {"<"} // less than operator
-lteq_op  = {"<="} // less than or equal operator
+lt_eq_op  = {"<="} // less than or equal operator
 lshft_op = {"<<"} // left shift operator
 rshft_op = {">>"} // right shift operator
 rng_op   = { ".." } // range operator
@@ -130,9 +136,9 @@ binary_op = _{
   or_op    |
   bwor_op  |
   bwxor_op |
-  lteq_op  |
+  lt_eq_op  |
   lt_op    |
-  gteq_op  |
+  gt_eq_op  |
   gt_op    |
   eq_op    |
   neq_op   |
@@ -194,7 +200,7 @@ prim_type = {
 }
 
 // Primary expression
-pexp = { ident_literal | num_literals | str_literal | char_literal | (lparen ~ exp ~ rparen) }
+pexp = { ident_literal | num_literals | str_literal | char_literal | (lparen ~ exp ~ rparen)}
 
 // Prefix expression
 pfexp = { pexp ~
@@ -210,24 +216,26 @@ pfexp = { pexp ~
 uexp = { pfexp
        | ((inc_op | dec_op) ~ uexp)
        | (elops ~ cast)
-       | ((keyword_szo | keyword_typ) ~ (uexp | lparen ~ string ~ rparen))
+       | ((keyword_szo | keyword_typ) ~ (uexp | cast_op ~ string))
 }
 
-cast  = { (lparen ~ cast_op ~ string ~ rparen)? ~ uexp }
-mexp  = { cast ~ ((mult_op | div_op | mod_op) ~ cast)* } // multiplicative expression
-aexp  = { mexp ~ ((add_op | sub_op) ~ mexp)* } // addition expression
-sexp  = { aexp ~ ((lshft_op | rshft_op) ~ aexp)* } // shift expresion
-rexp  = { sexp ~ ((lteq_op | gteq_op | lt_op | gt_op) ~ sexp)* } // relation expression
-eexp  = { rexp ~ ((eq_op | neq_op) ~ rexp)* } // equivalence expression
-coexp = { bexp ~(expoll_op ~ bexp ~ comma ~ bexp)* } // conditional expression
-bwexp = { eexp ~ ((bwor_op | bwxor_op | bwand_op) ~ eexp)* } // bit-wise expression
-bexp  = { bwexp ~ ((and_op | or_op) ~ bwexp)* } // boolean expression
-asexp = { coexp ~ (elops ~ asexp)* } // assignment expression
+cast  = { (cast_op ~ string)? ~ uexp }
+mult_exp  = { cast ~ ((mult_op | div_op | mod_op) ~ cast)* } // multiplicative expression
+add_exp  = { mult_exp ~ ((add_op | sub_op) ~ mult_exp)* } // addition expression
+shft_exp  = { add_exp ~ ((lshft_op | rshft_op) ~ add_exp)* } // shift expresion
 
-exp   = { asexp ~ (comma ~ asexp)* } // expression : generic
+rel_exp  = { shft_exp ~ ((lt_eq_op | gt_eq_op | lt_op | gt_op) ~ shft_exp)* } // relation expression
+eq_exp  = { rel_exp ~ ((eq_op | neq_op) ~ rel_exp)* } // equivalence expression
+
+cond_exp = { bool_exp ~(expoll_op ~ bool_exp ~ comma ~ bool_exp)* } // conditional expression
+bw_exp = { eq_exp ~ ((bwor_op | bwxor_op | bwand_op) ~ eq_exp)* } // bit-wise expression
+bool_exp  = { bw_exp ~ ((and_op | or_op) ~ bw_exp)* } // boolean expression
+asgn_exp = { cond_exp ~ (elops ~ asgn_exp)* } // assignment expression
+
+exp   = { asgn_exp ~ (comma ~ asgn_exp)* } // expression : generic
 
 // Parameters
-params = { lparen ~ (coexp ~ (comma ~ coexp)*)? ~ rparen }
+params = { lparen ~ (cond_exp ~ (comma ~ cond_exp)*)? ~ rparen }
 
 // List of all elect operators
 elops = {
