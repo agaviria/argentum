@@ -1,94 +1,25 @@
 //
 // Errors
 //
-use std::io;
-use std::fmt;
-use std::error;
-use std::error::Error;
+pub type Position = usize;
 
+/// LexicalError represents invalid lexical analysis error types.
+/// The custom derive for Fail derives an impl of both Fail and Display.
+#[derive(Debug, Fail, PartialEq)]
+pub enum LexicalError {
+    /// Unknown character was found in the source, such as `?` or `#`
+    #[fail(display = "Invalid character '{}' found at {}", chr, pos)]
+    InvalidCharacter { chr: char, pos: Position },
 
-#[derive(Debug)]
-pub enum ParseError {
-    // UnexpectedEOF returns when an operation could not be completed because an
-    // "end of file" was reached prematurely.
-    //
-    // This typically means that an operation could only succeed if it read a
-    // particular number of bytes but only a smaller number of bytes could be read.
-    UnexpectedEOF
-}
+    /// Unknown character was found in the source, such as `?` or `#`
+    #[fail(display = "Invalid escape character '{}' found at {}", chr, pos)]
+    InvalidEscCharacter { chr: char, pos: Position },
 
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            ParseError::UnexpectedEOF => write!(f, "{}", self.description())
-        }
-    }
-}
+    /// A string was not terminated.
+    #[fail(display = "String starting at {} was not terminated", pos)]
+    UnterminatedString { pos: Position },
 
-impl error::Error for ParseError {
-    fn description(&self) -> &str {
-        match *self {
-            ParseError::UnexpectedEOF => "Unexpected end of file",
-        }
-    }
-
-    fn cause(&self) -> Option<&error::Error> {
-        match *self {
-            _ => None,
-        }
-    }
-}
-
-impl From<ParseError> for ProcessError {
-    fn from(err: ParseError) -> Self {
-        ProcessError::ParseError(err)
-    }
-}
-
-// Wrapper for many kinds of errors
-#[derive(Debug)]
-pub enum ProcessError {
-    IOError(io::Error),
-    ParseError(ParseError),
-}
-
-impl fmt::Display for ProcessError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            ProcessError::IOError(ref err) => write!(f, "Input Error: {}", err),
-            ProcessError::ParseError(ref err) => write!(f, "EOF: {}", err),
-        }
-    }
-}
-
-impl error::Error for ProcessError {
-    fn description(&self) -> &str {
-        match *self {
-            ProcessError::IOError(ref err) => err.description(),
-            ProcessError::ParseError(ref err) => err.description(),
-        }
-    }
-
-    fn cause(&self) -> Option<&error::Error> {
-        match *self {
-            ProcessError::IOError(ref err) => Some(err),
-            ProcessError::ParseError(ref err) => Some(err),
-        }
-    }
-}
-
-// Convert everything else into Error
-//
-impl From<io::Error> for ProcessError {
-    fn from(err: io::Error) -> Self {
-        ProcessError::IOError(err)
-    }
-}
-
-// Convert Error into a general IO Error
-//
-impl From<ProcessError> for io::Error {
-    fn from(err: ProcessError) -> Self {
-        io::Error::new(io::ErrorKind::Other, err)
-    }
+    /// The source ended unexpectedly.
+    #[fail(display = "Unexpected end of file encountered.")]
+    UnexpectedEOF { pos: Position },
 }

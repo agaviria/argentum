@@ -3,7 +3,7 @@ extern crate argentum;
 use std::fs::File;
 use std::io::prelude::*;
 
-use argentum::parser;
+use argentum::syntax::parser;
 
 macro_rules! integration_test {
   ($id:ident, $name:expr, $is_ok:expr) => {

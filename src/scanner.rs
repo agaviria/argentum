@@ -1,52 +1,49 @@
-use std::fs::File;
-use std::path::PathBuf;
-use std::str;
-use std::io::prelude::*;
-use std::io::BufReader;
-use std::io::Result as IOResult;
+use ast::nodes::node_type;
+use parser::{SilverParser, Rule};
+use pest::inputs::StrInput;
+use pest::iterators::Pair;
 
-use itertools::{multipeek, MultiPeek};
-use utils::Position;
-
-// TODO:  * Figure out the input process.
-//
-// Possibly, convert the input token stream into an abstract syntax list representing
-// the totality of the source code.  This result is then fed into a semantic
-// analysis, returning a list of nodes for further processing, or an error.
-
-#[allow(dead_code)]
-pub struct Scanner<'a> {
-    // file path buffer --optional
-    pub path_buffer: Option<PathBuf>,
-    // peekable iterator.
-    pub peekable: MultiPeek<str::Chars<'a>>,
-    pub next: Option<char>,
-    pub next_position: Position,
+pub fn consume<I: StrInput>(pair: Pair<Rule, I>) -> node_type::KindOf {
+    match pair.as_rule() {
+        Rule::float_literal => build_float(pair),
+        _                   => unexpected_token(pair),
+    }
 }
 
-impl<'a> Scanner<'a> {
-    // Returns a new scanner over the provided input buffer.
-    pub fn init_from_file(path_buffer: PathBuf, mut body: &'a mut String) -> IOResult<Scanner<'a>> {
-        let file = File::open(&path_buffer)?;
+pub fn build_map<I: StrInput>(pair: Pair<Rule, I>) -> node_type::KindOf {
+    unimplemented!();
+}
 
-        let mut buffer_reader = BufReader::new(file);
-        buffer_reader.read_to_string(&mut body)?;
+fn build_float<I: StrInput>(pair: Pair<Rule, I>) -> node_type::KindOf {
+    let value = pair.into_span().as_str().replace("_", "");
+    float64!(&value)
+}
 
-        let mut source_reader = Scanner::init_from_str(body);
-        source_reader.path_buffer = Some(path_buffer);
+fn unexpected_token<I: StrInput>(pair: Pair<Rule, I>) -> ! {
+    let msg = format!("Unexpected token: {:#}", pair);
+    panic!(msg);
+}
 
-        Ok(source_reader)
+pub fn parse_str_wrapper(src: &str) -> node_type::KindOf {
+    let parser = SilverParser::parse_str(Rule::input, src);
+    if parser.is_err() { panic!(format!("{:#}", parser.err().unwrap())); }
+
+    let pair = parser.unwrap().next().unwrap();
+    consume(pair)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn parse(input: &str) -> node_type::KindOf {
+        println!("Attempting to parse {:?}", input);
+        parse_str_wrapper(input)
     }
 
-    pub fn init_from_str(source: &'a str) -> Scanner<'a> {
-        let mut peekable = multipeek(source.chars());
-        let next = peekable.next();
-
-        Scanner {
-            path_buffer: None,
-            peekable,
-            next,
-            next_position: Position::new(0, 0)
-        }
+    #[test]
+    fn float_literal() {
+        assert_eq!(parse("0.0"), float32!("0.0"));
+        assert_eq!(parse("3.2250738585072014"), float64!("2.2250738585072014"));
     }
 }

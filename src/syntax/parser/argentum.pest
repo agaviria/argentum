@@ -1,0 +1,306 @@
+/// Argentum, a.k.a. (Silver) grammar using PEST.
+// -------------------------------------------------
+// |               PEST rules:                     |
+// +-----------------------------------------------+
+// pest matches white space by default ?           |
+// _ silent rule                                   |
+// @ atomic rule (no whitespace)                   |
+// $ compund-atomic rule (don't generate tokens)   |
+// ? optional                                      |
+// ! not atomic rule                                           |
+// * 0 or more                                     |
+// + 1 or more                                     |
+// ~ followed by                                   |
+// | or                                            |
+// soi start of input                              |
+// eoi end of input                                |
+// any any character                               |
+// ^ case insensitive (strings only)               |
+// .. up to                                        |
+// ------------------------------------------------/
+
+// -----------------Top Level Main Rule---------------------
+
+top_lvl = { soi ~ (literal ~ statement)* ~ eoi }
+statement = { fn_dcl | var_dcl | expr | semi_colon | comment }
+
+// ---------------------------------------------------------
+
+
+// ---------------------Arguments---------------------------
+
+// single argument
+arg_dcl = { ident ~ type_dcl }
+
+// one or multiple arguments
+args_dcl = { arg_dcl? ~ (arg_dcl ~ comma)* }
+
+// literal type argument
+type_dcl = { colon ~ prim_type }
+
+// ---------------------------------------------------------
+
+
+// --------------------Declarations-------------------------
+
+// variable object declaration
+var_dcl = { "let" ~ ident ~ type_dcl? ~ semi_colon }
+
+// function declaration
+fn_dcl = { "fn" ~ ident ~ fn_call ~ (cast ~ prim_type)? ~ code_block* }
+
+fn_call = { left_paren ~ args_dcl* ~ arg_dcl? ~ right_paren }
+code_block = _{ left_brace ~ (!fn_dcl ~ statement)* ~ right_brace }
+
+// ---------------------------------------------------------
+
+
+// ---------------------Expression--------------------------
+
+args = _{ expr ~ (comma ~ expr)* }
+call = { ident ~ left_paren ~ args? ~ right_paren }
+
+term = { unary_op* ~ literal ~ expr_call? ~ (dot ~ call)*}
+expr = { term ~ (binary_op ~ term)* }
+expr_call = { left_paren ~ expr ~ right_paren }
+
+// ---------------------------------------------------------
+
+// ------------------------Tokens---------------------------
+
+// Single character tokens
+asterik            = _{"*"}
+caret              = _{"^"}
+comma              = _{","}
+dot                = _{"."}
+fwd_slash          = _{"/"}
+left_paren         = _{"("}
+right_paren        = _{")"}
+left_brace         = _{"{"}
+right_brace        = _{"}"}
+left_square        = _{"["}
+right_square       = _{"]"}
+minus              = _{"-"}
+percentage         = _{"%"}
+plus               = _{"+"}
+semi_colon         = _{";"}
+question_mark      = _{"?"}
+
+// One or two character tokens
+ampersand   = _{"&"}
+bang        = _{"!"}
+not_eql     = _{"!="}
+cast        = _{"->"}
+colon       = _{":"}
+assign      = _{"="}
+eql         = _{"=="}
+gt          = _{">"}
+gt_eql      = _{">="}
+lt          = _{"<"}
+lt_eql      = _{"<="}
+logical_and = _{"&&"}
+logical_or  = _{"||"}
+path        = _{"::"}
+pipe        = _{"|"}
+
+// ---------------------------------------------------------
+
+
+// ------------------Primitive Types------------------------
+
+prim_type = {
+  void_type |
+  str_type  |
+  char_type |
+  bool_type |
+  i8_type   |
+  u8_type   |
+  i16_type  |
+  u16_type  |
+  i32_type  |
+  u32_type  |
+  i64_type  |
+  u64_type  |
+  f32_type  |
+  f64_type  |
+  nil_type
+}
+
+char_type = { "char" }
+void_type = { "void" }
+str_type  = { "str"  }
+bool_type = { "bool" }
+i8_type   = { "i8" }
+u8_type   = { "u8" }
+i16_type  = { "i16" }
+u16_type  = { "u16" }
+i32_type  = { "i32" }
+u32_type  = { "u32" }
+i64_type  = { "i64" }
+u64_type  = { "u64" }
+f32_type  = { "f32" }
+f64_type  = { "f64" }
+nil_type  = { "nil" }
+
+// ---------------------------------------------------------
+
+
+// -----------------Arithmetic operators--------------------
+
+math_op = _{ add  | sub  | mult | div  | modulo }
+
+add    = {"+"}
+sub    = {"-"}
+mult   = {"*"}
+div    = {"/"}
+modulo = {"%"}
+
+// ---------------------------------------------------------
+
+
+// -----------------BitWise operators-----------------------
+
+bitwise_op = _{ bwand | bwor | bwxor | lshft | rshft }
+
+bwand = { ampersand }
+bwor  = { pipe }
+bwxor = { caret }
+lshft = {"<<"}
+rshft = {">>"}
+
+// ---------------------------------------------------------
+
+
+// -----------------Comparison operators--------------------
+
+comp_op = _{ gt | gt_eql | lt | lt_eql | eql | not_eql }
+
+// ---------------------------------------------------------
+
+
+// -------------------Logical operators---------------------
+
+logical_op = _{ logical_and | logical_or }
+
+// ---------------------------------------------------------
+
+
+// --------------------Unary operators----------------------
+
+unary_op = _{ unary_minus | unary_not }
+
+unary_minus = { minus }
+unary_not   = { bang }
+
+// ---------------------------------------------------------
+
+
+// ------------------Binary operators-----------------------
+
+binary_op = _{ comp_op | bitwise_op | logical_op | math_op }
+
+// ---------------------------------------------------------
+
+
+// -----------------------Boolean---------------------------
+
+boolean = ${ true_value | false_value }
+
+true_value    = { "true" }
+false_value   = { "false" }
+
+// ---------------------------------------------------------
+
+
+// ----------------------Literals---------------------------
+
+literal = ${
+  boolean  |
+  char     |
+  constant |
+  ident    |
+  number   |
+  string
+}
+
+alpha      = _{ 'a'..'z' | 'A'..'Z' } // Alphabet
+ident_expr = _{ (alpha | "_") ~ (alpha | digit)* }
+ident      = @{ !(boolean | prim_type) ~ ident_expr }
+constant   = @{ 'A'..'Z' ~ (alpha | digit)* }
+
+raw_str    = { (!("\"" | "\\") ~ any)+  }
+raw_char   = { any }
+
+string        = { qwt ~ (escape | raw_str)* ~ qwt }
+char       = { sqwt ~ (!"'" ~ (escape | raw_char)) ~ sqwt }
+
+float                   = @{ (plus | minus)? ~ float_pfx ~ "." ~ (float_sfx ~ expo? | expo)? }
+
+float_pfx     = { ( "0" | ( '1'..'9' ~ ( '0'..'9' | "_" )* ) ) }
+float_sfx     = { ( "0" | ( '0'..'9' | "_" )+ ) }
+
+number = {
+  float           |
+  int_hexadecimal |
+  int_octal       |
+  int_binary      |
+  int_decimal     |
+  int_zero
+}
+
+int_zero              = @{ "0" }
+int_decimal           = @{ digit_nonzero ~ int }
+int_binary            = @{ int_binary_sigil ~ int_binary_number }
+int_binary_sigil      = _{ "0b" | "0B" }
+int_binary_number     = _{ (digit | "_")+ }
+int_octal             = @{ int_octal_sigil ~ ('1'..'7') ~ ('0'..'7' | "_")* }
+int_octal_sigil       = _{ "0o" | "0O" }
+int_hexadecimal       = @{ int_hexadecimal_sigil ~ (int | alpha )+ }
+int_hexadecimal_sigil = _{ "0x" | "0X"}
+
+expo          = @{ ("E" | "e") ~ (plus | minus)? ~ int }
+int           = { digit ~ (digit | "_")* }
+digit         = _{ '0'..'9' }
+digit_nonzero = _{ '1'..'9' }
+digit_octal   = { '0'..'7' }
+
+// ---------------------------------------------------------
+
+
+// ------------------Silent Values--------------------------
+
+newline       = _{ "\n" | "\r\n" }
+whitespace    = _{ " " | "\t" | "\u{00C}" | newline }
+block_comment = @{ "/*" ~ (!"*/" ~ any)* ~ "*/" }
+line_comment  = @{ "//" ~ (!newline ~ any)* }
+comment       = ${ block_comment | line_comment }
+
+// ---------------------------------------------------------
+
+
+// ------------------Escape Values--------------------------
+
+escape = ${ "\\" ~ ("n" | "t" | "v" | "b" | "r" | "f" | "a" | "\\" | "?" | "'" | "\"") |
+  octal_escape |
+  hex_escape |
+  unicode_escape
+}
+
+// representation value
+hex      = { '0'..'9' | 'a'..'f' |'A'..'F' }
+unicode = _{ "u" ~ hex{1, 4} }
+
+
+octal_escape = ${ "\\" ~ digit_octal ~ digit_octal? ~ digit_octal? }
+hex_escape = ${ "\\" ~ "x" ~ hex{2}? }
+unicode_escape = ${ "\\" ~ unicode }
+
+// ---------------------------------------------------------
+
+
+// -----------------------Utils-----------------------------
+
+qwt             = _{"\""} // quote (")
+sqwt            = _{"'"} // single quote (')
+
+// ---------------------------------------------------------

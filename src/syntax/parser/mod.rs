@@ -8,27 +8,31 @@ use pest::iterators::Pairs;
 const _GRAMMAR: &'static str = include_str!("argentum.pest");
 
 #[derive(Parser)]
-#[grammar = "parser/argentum.pest"]
+#[grammar = "syntax/parser/argentum.pest"]
 pub struct SilverParser;
 
 lazy_static! {
-    static ref ARITHMETICAL_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
+    static ref ARITHMETIC_EXP_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
         vec![
-        Operator::new(Rule::add_op, Assoc::Left) | Operator::new(Rule::sub_op, Assoc::Left),
-        Operator::new(Rule::mult_op, Assoc::Left) |
-        Operator::new(Rule::div_op, Assoc::Left) |
-        Operator::new(Rule::mod_op, Assoc::Left),
+        Operator::new(Rule::add, Assoc::Left) | Operator::new(Rule::sub, Assoc::Left),
+        Operator::new(Rule::mult, Assoc::Left) |
+        Operator::new(Rule::div, Assoc::Left) |
+        Operator::new(Rule::modulo, Assoc::Left),
         ]);
-    static ref COMPARISON_EXPRESSION_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
+    static ref COMPARISON_EXPR_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
         vec![
-        Operator::new(Rule::lt_op, Assoc::Left) | Operator::new(Rule::lt_eq_op, Assoc::Left),
-        Operator::new(Rule::gt_op, Assoc::Left) | Operator::new(Rule::gt_eq_op, Assoc::Left),
-        Operator::new(Rule::eq_op, Assoc::Left) | Operator::new(Rule::neq_op, Assoc::Left),
+        Operator::new(Rule::lt, Assoc::Left) | Operator::new(Rule::lt_eql, Assoc::Left),
+        Operator::new(Rule::gt, Assoc::Left) | Operator::new(Rule::gt_eql, Assoc::Left),
+        Operator::new(Rule::eql, Assoc::Left) | Operator::new(Rule::not_eql, Assoc::Left),
         ]);
-    static ref LOGIC_EXPRESSION_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
+    static ref LOGIC_EXPR_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
         vec![
-        Operator::new(Rule::or_op, Assoc::Left),
-        Operator::new(Rule::and_op, Assoc::Left)
+        Operator::new(Rule::logical_or, Assoc::Left),
+        Operator::new(Rule::logical_and, Assoc::Left)
+        ]);
+    static ref ASSIGN_EXPR_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
+        vec![
+        Operator::new(Rule::assign, Assoc::Right),
         ]);
 }
 
@@ -48,10 +52,10 @@ fn bool_literal_true() {
     parses_to! {
         parser: SilverParser,
         input: "true",
-        rule: Rule::bool_literal,
+        rule: Rule::boolean,
         tokens: [
-            bool_literal(0, 4, [
-                         bool_true(0, 4)
+            boolean(0, 4, [
+                    true_value(0, 4)
             ])
         ]
     };
@@ -62,10 +66,10 @@ fn bool_literal_false() {
     parses_to! {
         parser: SilverParser,
         input: "false",
-        rule: Rule::bool_literal,
+        rule: Rule::boolean,
         tokens: [
-            bool_literal(0, 5, [
-                         bool_false(0, 5)
+            boolean(0, 5, [
+                    false_value(0, 5)
             ])
         ]
     };
@@ -124,9 +128,11 @@ fn float_zero_dot() {
     parses_to! {
         parser: SilverParser,
         input: "0.",
-        rule: Rule::float_literal,
+        rule: Rule::number,
         tokens: [
-            float_literal(0, 2)
+            number(0, 2, [
+                   float(0, 2)
+            ])
         ]
     };
 }
@@ -136,9 +142,11 @@ fn float_zero_dot_zero() {
     parses_to! {
         parser: SilverParser,
         input: "0.0",
-        rule: Rule::float_literal,
+        rule: Rule::number,
         tokens: [
-            float_literal(0, 3)
+            number(0, 3, [
+                   float(0, 3)
+            ])
         ]
     };
 }
@@ -148,9 +156,11 @@ fn float_one_dot_five_exponent() {
     parses_to! {
         parser: SilverParser,
         input: "1.5e10",
-        rule: Rule::float_literal,
+        rule: Rule::number,
         tokens: [
-            float_literal(0, 6)
+            number(0, 6, [
+                   float(0, 6)
+            ])
         ]
     };
 }
@@ -160,9 +170,11 @@ fn float_zero_dot_zero_exp_plus() {
     parses_to! {
         parser: SilverParser,
         input: "0.0e-0",
-        rule: Rule::float_literal,
+        rule: Rule::number,
         tokens: [
-            float_literal(0, 6)
+            number(0, 6, [
+                   float(0, 6)
+            ])
         ]
     };
 }
@@ -269,10 +281,10 @@ fn char_without_escape() {
     parses_to! {
         parser: SilverParser,
         input: "'A'",
-        rule: Rule::char_literal,
+        rule: Rule::char,
         tokens: [
-            char_literal(0, 3, [
-                         raw_char(1, 2)
+            char(0, 3, [
+                 raw_char(1, 2)
             ])
         ]
     };
@@ -283,10 +295,10 @@ fn char_with_escape() {
     parses_to! {
         parser: SilverParser,
         input: "'\\''",
-        rule: Rule::char_literal,
+        rule: Rule::char,
         tokens: [
-            char_literal(0, 4, [
-                         escape(1, 3)
+            char(0, 4, [
+                 escape(1, 3)
             ])
         ]
     };
@@ -298,10 +310,10 @@ fn string_without_escape() {
     parses_to! {
         parser: SilverParser,
         input: "\"The Matrix\"",
-        rule: Rule::str_literal,
+        rule: Rule::string,
         tokens: [
-            str_literal(0, 12, [
-                        raw_str(1, 11)
+            string(0, 12, [
+                   raw_str(1, 11)
             ])
         ]
     };
@@ -313,28 +325,28 @@ fn string_with_escape() {
     parses_to! {
         parser: SilverParser,
         input: r#""a\nb\x0Fc\u2107Now""#,
-        rule: Rule::str_literal,
+        rule: Rule::string,
         tokens: [
-            str_literal(0, 20, [
-                        raw_str(1, 2),
-                        escape(2, 4),
-                        raw_str(4, 5),
-                        escape(5, 9, [
-                               hex_escape(5, 9, [
-                                          hex(7, 8),
-                                          hex(8, 9)
-                               ])
-                        ]),
-                        raw_str(9, 10),
-                        escape(10, 16, [
-                               unicode_escape(10, 16, [
-                                              hex(12, 13),
-                                              hex(13, 14),
-                                              hex(14, 15),
-                                              hex(15, 16)
-                               ])
-                        ]),
-                        raw_str(16, 19)
+            string(0, 20, [
+                   raw_str(1, 2),
+                   escape(2, 4),
+                   raw_str(4, 5),
+                   escape(5, 9, [
+                          hex_escape(5, 9, [
+                                     hex(7, 8),
+                                     hex(8, 9)
+                          ])
+                   ]),
+                   raw_str(9, 10),
+                   escape(10, 16, [
+                          unicode_escape(10, 16, [
+                                         hex(12, 13),
+                                         hex(13, 14),
+                                         hex(14, 15),
+                                         hex(15, 16)
+                          ])
+                   ]),
+                   raw_str(16, 19)
             ])
             ]
     };
