@@ -1,8 +1,8 @@
-// Testing comment
+// Testing single line comment;
 
-/* Foo */
+// Foo;
 
-/*
-/*
-Bar
-*/
+//
+
+// Testing multiple line comment;
+// Multiple line comments will be added in future release;

@@ -21,8 +21,8 @@
 
 // -----------------Top Level Main Rule---------------------
 
-top_lvl = { soi ~ (literal ~ statement)* ~ eoi }
-statement = { fn_dcl | var_dcl | expr | semi_colon | comment }
+top_lvl    = { soi ~ (literal ~ statement)* ~ eoi }
+statement  = { fn_dcl | var_dcl | expr | semi_colon | comment }
 
 // ---------------------------------------------------------
 
@@ -30,13 +30,13 @@ statement = { fn_dcl | var_dcl | expr | semi_colon | comment }
 // ---------------------Arguments---------------------------
 
 // single argument
-arg_dcl = { ident ~ type_dcl }
+arg_dcl    = { ident ~ type_dcl }
 
 // one or multiple arguments
-args_dcl = { arg_dcl? ~ (arg_dcl ~ comma)* }
+args_dcl   = { arg_dcl? ~ (arg_dcl ~ comma)* }
 
 // literal type argument
-type_dcl = { colon ~ prim_type }
+type_dcl   = { colon ~ prim_type }
 
 // ---------------------------------------------------------
 
@@ -44,12 +44,12 @@ type_dcl = { colon ~ prim_type }
 // --------------------Declarations-------------------------
 
 // variable object declaration
-var_dcl = { "let" ~ ident ~ type_dcl? ~ semi_colon }
+var_dcl    = { "let" ~ ident ~ type_dcl? ~ semi_colon }
 
 // function declaration
-fn_dcl = { "fn" ~ ident ~ fn_call ~ (cast ~ prim_type)? ~ code_block* }
+fn_dcl     = { "fn" ~ ident ~ fn_call ~ (cast ~ prim_type)? ~ code_block* }
 
-fn_call = { left_paren ~ args_dcl* ~ arg_dcl? ~ right_paren }
+fn_call    = { left_paren ~ args_dcl* ~ arg_dcl? ~ right_paren }
 code_block = _{ left_brace ~ (!fn_dcl ~ statement)* ~ right_brace }
 
 // ---------------------------------------------------------
@@ -57,12 +57,12 @@ code_block = _{ left_brace ~ (!fn_dcl ~ statement)* ~ right_brace }
 
 // ---------------------Expression--------------------------
 
-args = _{ expr ~ (comma ~ expr)* }
-call = { ident ~ left_paren ~ args? ~ right_paren }
+args       = _{ expr ~ (comma ~ expr)* }
+call       = { ident ~ left_paren ~ args? ~ right_paren }
 
-term = { unary_op* ~ literal ~ expr_call? ~ (dot ~ call)*}
-expr = { term ~ (binary_op ~ term)* }
-expr_call = { left_paren ~ expr ~ right_paren }
+term       = { unary_op* ~ literal ~ expr_call? ~ (dot ~ call)*}
+expr       = { term ~ (binary_op ~ term)* }
+expr_call  = { left_paren ~ expr ~ right_paren }
 
 // ---------------------------------------------------------
 
@@ -147,13 +147,13 @@ nil_type  = { "nil" }
 
 // -----------------Arithmetic operators--------------------
 
-math_op = _{ add  | sub  | mult | div  | modulo }
+math_op   = _{ add  | sub  | mult | div  | modulo }
 
-add    = {"+"}
-sub    = {"-"}
-mult   = {"*"}
-div    = {"/"}
-modulo = {"%"}
+add       = {"+"}
+sub       = {"-"}
+mult      = {"*"}
+div       = {"/"}
+modulo    = {"%"}
 
 // ---------------------------------------------------------
 
@@ -162,32 +162,32 @@ modulo = {"%"}
 
 bitwise_op = _{ bwand | bwor | bwxor | lshft | rshft }
 
-bwand = { ampersand }
-bwor  = { pipe }
-bwxor = { caret }
-lshft = {"<<"}
-rshft = {">>"}
+bwand      = { ampersand }
+bwor       = { pipe }
+bwxor      = { caret }
+lshft      = {"<<"}
+rshft      = {">>"}
 
 // ---------------------------------------------------------
 
 
 // -----------------Comparison operators--------------------
 
-comp_op = _{ gt | gt_eql | lt | lt_eql | eql | not_eql }
+comp_op     = _{ gt | gt_eql | lt | lt_eql | eql | not_eql }
 
 // ---------------------------------------------------------
 
 
 // -------------------Logical operators---------------------
 
-logical_op = _{ logical_and | logical_or }
+logical_op  = _{ logical_and | logical_or }
 
 // ---------------------------------------------------------
 
 
 // --------------------Unary operators----------------------
 
-unary_op = _{ unary_minus | unary_not }
+unary_op    = _{ unary_minus | unary_not }
 
 unary_minus = { minus }
 unary_not   = { bang }
@@ -197,17 +197,17 @@ unary_not   = { bang }
 
 // ------------------Binary operators-----------------------
 
-binary_op = _{ comp_op | bitwise_op | logical_op | math_op }
+binary_op   = _{ comp_op | bitwise_op | logical_op | math_op }
 
 // ---------------------------------------------------------
 
 
 // -----------------------Boolean---------------------------
 
-boolean = ${ true_value | false_value }
+boolean     = ${ true_value | false_value }
 
-true_value    = { "true" }
-false_value   = { "false" }
+true_value  = { "true" }
+false_value = { "false" }
 
 // ---------------------------------------------------------
 
@@ -231,16 +231,17 @@ constant   = @{ 'A'..'Z' ~ (alpha | digit)* }
 raw_str    = { (!("\"" | "\\") ~ any)+  }
 raw_char   = { any }
 
-string        = { qwt ~ (escape | raw_str)* ~ qwt }
+string     = { qwt ~ (escape | raw_str)* ~ qwt }
 char       = { sqwt ~ (!"'" ~ (escape | raw_char)) ~ sqwt }
 
-float                   = @{ (plus | minus)? ~ float_pfx ~ "." ~ (float_sfx ~ expo? | expo)? }
+float      = @{ (plus | minus)? ~ float_pfx ~ "." ~ (float_sfx ~ expo? | expo)? }
 
-float_pfx     = { ( "0" | ( '1'..'9' ~ ( '0'..'9' | "_" )* ) ) }
-float_sfx     = { ( "0" | ( '0'..'9' | "_" )+ ) }
+float_pfx  = { ( "0" | ( '1'..'9' ~ ( '0'..'9' | "_" )* ) ) }
+float_sfx  = { ( "0" | ( '0'..'9' | "_" )+ ) }
 
 number = {
   float           |
+  integer         |
   int_hexadecimal |
   int_octal       |
   int_binary      |
@@ -249,20 +250,20 @@ number = {
 }
 
 int_zero              = @{ "0" }
-int_decimal           = @{ digit_nonzero ~ int }
+int_decimal           = @{ digit_nonzero ~ integer }
 int_binary            = @{ int_binary_sigil ~ int_binary_number }
 int_binary_sigil      = _{ "0b" | "0B" }
 int_binary_number     = _{ (digit | "_")+ }
 int_octal             = @{ int_octal_sigil ~ ('1'..'7') ~ ('0'..'7' | "_")* }
 int_octal_sigil       = _{ "0o" | "0O" }
-int_hexadecimal       = @{ int_hexadecimal_sigil ~ (int | alpha )+ }
+int_hexadecimal       = @{ int_hexadecimal_sigil ~ (integer | alpha )+ }
 int_hexadecimal_sigil = _{ "0x" | "0X"}
 
-expo          = @{ ("E" | "e") ~ (plus | minus)? ~ int }
-int           = { digit ~ (digit | "_")* }
-digit         = _{ '0'..'9' }
-digit_nonzero = _{ '1'..'9' }
-digit_octal   = { '0'..'7' }
+expo                  = @{ ("E" | "e") ~ (plus | minus)? ~ integer }
+integer               = @{ digit ~ (digit | "_")* }
+digit                 = _{ '0'..'9' }
+digit_nonzero         = _{ '1'..'9' }
+digit_octal           = { '0'..'7' }
 
 // ---------------------------------------------------------
 
@@ -271,28 +272,29 @@ digit_octal   = { '0'..'7' }
 
 newline       = _{ "\n" | "\r\n" }
 whitespace    = _{ " " | "\t" | "\u{00C}" | newline }
-block_comment = @{ "/*" ~ (!"*/" ~ any)* ~ "*/" }
 line_comment  = @{ "//" ~ (!newline ~ any)* }
-comment       = ${ block_comment | line_comment }
+comment       = ${ line_comment }
 
 // ---------------------------------------------------------
 
 
 // ------------------Escape Values--------------------------
 
-escape = ${ "\\" ~ ("n" | "t" | "v" | "b" | "r" | "f" | "a" | "\\" | "?" | "'" | "\"") |
+escape = ${ "\\" ~ (
+  "n" | "t" | "v" | "b" | "r" | "f" |
+  "a" | "\\" | "?" | "'" | "\"") |
   octal_escape |
   hex_escape |
   unicode_escape
 }
 
 // representation value
-hex      = { '0'..'9' | 'a'..'f' |'A'..'F' }
-unicode = _{ "u" ~ hex{1, 4} }
+hex            = { '0'..'9' | 'a'..'f' |'A'..'F' }
+unicode        = _{ "u" ~ hex{1, 4} }
 
 
-octal_escape = ${ "\\" ~ digit_octal ~ digit_octal? ~ digit_octal? }
-hex_escape = ${ "\\" ~ "x" ~ hex{2}? }
+octal_escape   = ${ "\\" ~ digit_octal ~ digit_octal? ~ digit_octal? }
+hex_escape     = ${ "\\" ~ "x" ~ hex{2}? }
 unicode_escape = ${ "\\" ~ unicode }
 
 // ---------------------------------------------------------
