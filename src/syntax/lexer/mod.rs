@@ -182,7 +182,9 @@ impl<'a> Lexer<'a> {
 			'%' => Ok(Token::new(Percentage, self.char_pos, self.char_pos)),
 			'?' => Ok(Token::new(QuestionMark, self.char_pos, self.char_pos)),
 			'-' => self.minus_or_cast_op(pos),
-			_   => self.span_err(error::LexerErrorKind::UnknownCharacter, pos, self.char_pos)
+			'"' => self.string_literal(pos),
+			_   => self.span_err(error::LexerErrorKind::UnknownCharacter,
+													 pos, self.char_pos)
 		}
 	}
 
@@ -195,6 +197,61 @@ impl<'a> Lexer<'a> {
 		} else {
 			// It is a `-` token.
 			Ok(Token::new(Minus, start, self.char_pos))
+		}
+	}
+
+	/// string literal match on paired `chars`. Allows escape characters and
+	/// items that are not end quotes.
+	fn string_literal(&mut self, start: Position) -> Result<Token, LexicalDiagnostic> {
+		let mut buffer = String::new();
+		loop {
+			let paired = self.iter.peek().map(|x| *x);
+			let chr = match paired {
+				Some(chr) => chr,
+				None => return self.span_err(error::LexerErrorKind::UnterminatedStringLiteral,
+																		 start, self.char_pos)
+			};
+			// iter.peek() already scanned `"` before entering this method call.
+			// If scanner pairs on `"`, then break out of loop.
+			match chr {
+				'"' => {
+					let _ = self.bump().unwrap();
+					break;
+				},
+				'\\' => {
+					let _ = self.bump().unwrap();
+					let actual = self.escape_char(start)?;
+					buffer.push(actual)
+				},
+				chr => {
+					let _ = self.bump().unwrap();
+					buffer.push(chr);
+				}
+			}
+		}
+		// If code reaches here, the scanner has already found a closing double quote.
+		// String is the string literal AST representation for argentum language.
+		Ok(Token::new(String(buffer), start, self.char_pos))
+	}
+
+	#[allow(dead_code)]
+	/// Match on escape sequence representations.
+	fn escape_char(&mut self, start: Position) -> Result<char, LexicalDiagnostic> {
+		match self.bump() {
+			Some(chr) => match chr {
+				'"'  => Ok('"'),
+				'\\' => Ok('\\'),
+				'/'  => Ok('/'),
+				'b'  => Ok('\u{0008}'),
+				'f'  => Ok('\u{000C}'),
+				't'  => Ok('\t'),
+				'n'  => Ok('\n'),
+				'r'  => Ok('\r'),
+				_    => self.span_err(error::LexerErrorKind::InvalidEscapeCharacter,
+															start, self.char_pos)
+			},
+			None => self.span_err(error::LexerErrorKind::UnterminatedStringLiteral,
+														start, self.char_pos)
 		}
 	}
 
