@@ -272,8 +272,9 @@ digit_octal           = { '0'..'7' }
 
 newline       = _{ "\n" | "\r\n" }
 whitespace    = _{ " " | "\t" | "\u{00C}" | newline }
-line_comment  = @{ "//" ~ (!newline ~ any)* }
-comment       = ${ line_comment }
+block_comment = @{ "##" ~ (!"##" ~ any)* ~ "##" }
+line_comment  = @{ "#" ~ (!newline ~ any)* }
+comment       = ${ line_comment | block_comment }
 
 // ---------------------------------------------------------
 

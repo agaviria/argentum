@@ -1,8 +1,10 @@
-// Testing single line comment;
+# Testing single line comment;
 
-// Foo;
+# Foo;
 
-//
+#
 
-// Testing multiple line comment;
-// Multiple line comments will be added in future release;
+##
+Testing multiple-
+line comment;
+##

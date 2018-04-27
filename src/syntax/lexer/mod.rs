@@ -24,7 +24,7 @@
 //! which exposes no public methods but instead implements the Iterator trait.
 //! Every call to `next` runs the state machine on the input until it reaches
 //! an accept state, reaches an EOF, or has some other sort of error.
-//! `next` returns either a Token upon success, or a CompileDiagnostic on failure.
+//! `next` returns either a Token upon success, or a LexicalDiagnostic on failure.
 //! The parser is expected to abort parsing immediately if it encounters a lexer
 //! error in this way.
 //!
@@ -69,7 +69,7 @@ impl<'a> Iterator for Lexer<'a> {
 	fn next(&mut self) -> Option<Self::Item> {
 		loop {
 			match self.iter.peek().clone() {
-				Some('#') => self.skip_comment_line_and_ws(),
+				Some(&'#') => self.skip_comment_line_and_ws(),
 				Some(_)   => return Some(self.token_stream_state()),
 				None      => return None
 			}
@@ -150,7 +150,7 @@ impl<'a> Lexer<'a> {
 			if chr == '\n' {
 				self.char_pos.0 += 1;
 				self.char_pos.1  = 0;
-			} else if chr == '/' && self.peek_char_eq('/') {
+			} else if chr == '#' || self.peek_char_eq('#') {
 				// skip line if `char` is a comment.  Argentum uses '#' as the
 				// comment `char` identifier token.
 				self.skip_line();
