@@ -11,30 +11,30 @@ const _GRAMMAR: &'static str = include_str!("argentum.pest");
 #[grammar = "syntax/parser/argentum.pest"]
 pub struct SilverParser;
 
-lazy_static! {
-    static ref ARITHMETIC_EXP_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
-        vec![
-        Operator::new(Rule::add, Assoc::Left) | Operator::new(Rule::sub, Assoc::Left),
-        Operator::new(Rule::mult, Assoc::Left) |
-        Operator::new(Rule::div, Assoc::Left) |
-        Operator::new(Rule::modulo, Assoc::Left),
-        ]);
-    static ref COMPARISON_EXPR_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
-        vec![
-        Operator::new(Rule::lt, Assoc::Left) | Operator::new(Rule::lt_eql, Assoc::Left),
-        Operator::new(Rule::gt, Assoc::Left) | Operator::new(Rule::gt_eql, Assoc::Left),
-        Operator::new(Rule::eql, Assoc::Left) | Operator::new(Rule::not_eql, Assoc::Left),
-        ]);
-    static ref LOGIC_EXPR_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
-        vec![
-        Operator::new(Rule::logical_or, Assoc::Left),
-        Operator::new(Rule::logical_and, Assoc::Left)
-        ]);
-    static ref ASSIGN_EXPR_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
-        vec![
-        Operator::new(Rule::assign, Assoc::Right),
-        ]);
-}
+// lazy_static! {
+//     static ref ARITHMETIC_EXP_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
+//         vec![
+//         Operator::new(Rule::add, Assoc::Left) | Operator::new(Rule::sub, Assoc::Left),
+//         Operator::new(Rule::mult, Assoc::Left) |
+//         Operator::new(Rule::div, Assoc::Left) |
+//         Operator::new(Rule::modulo, Assoc::Left),
+//         ]);
+//     static ref COMPARISON_EXPR_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
+//         vec![
+//         Operator::new(Rule::lt, Assoc::Left) | Operator::new(Rule::lt_eql, Assoc::Left),
+//         Operator::new(Rule::gt, Assoc::Left) | Operator::new(Rule::gt_eql, Assoc::Left),
+//         Operator::new(Rule::eql, Assoc::Left) | Operator::new(Rule::not_eql, Assoc::Left),
+//         ]);
+//     static ref LOGIC_EXPR_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
+//         vec![
+//         Operator::new(Rule::logical_or, Assoc::Left),
+//         Operator::new(Rule::logical_and, Assoc::Left)
+//         ]);
+//     static ref ASSIGN_EXPR_CLIMBER: PrecClimber<Rule> = PrecClimber::new(
+//         vec![
+//         Operator::new(Rule::assign, Assoc::Right),
+//         ]);
+// }
 
 /// Error encountered while decoding Silver data.
 #[derive(Debug)]
@@ -80,9 +80,9 @@ fn int_zero() {
     parses_to! {
         parser: SilverParser,
         input: "0",
-        rule: Rule::int,
+        rule: Rule::integer,
         tokens: [
-            int(0, 1)
+            integer(0, 1)
         ]
     };
 }
@@ -92,9 +92,9 @@ fn int_start_with_zero() {
     parses_to! {
         parser: SilverParser,
         input: "01",
-        rule: Rule::int,
+        rule: Rule::integer,
         tokens: [
-            int(0, 2)
+            integer(0, 2)
         ]
     };
 }
@@ -104,9 +104,9 @@ fn int_with_zero_and_underscores() {
     parses_to! {
         parser: SilverParser,
         input: "0___",
-        rule: Rule::int,
+        rule: Rule::integer,
         tokens: [
-            int(0, 4)
+            integer(0, 4)
         ]
     };
 }
@@ -116,9 +116,9 @@ fn int_one_million() {
     parses_to! {
         parser: SilverParser,
         input: "1_000_000",
-        rule: Rule::int,
+        rule: Rule::integer,
         tokens: [
-            int(0, 9)
+            integer(0, 9)
         ]
     };
 }

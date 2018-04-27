@@ -1,12 +1,34 @@
 use std::fmt;
 
+use utils::{Span, Position};
+
 // TODO: Would like to have Number be of type rug::float.
 // Problem is that rug::float does not implement the Copy trait.  Look into it!
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Token<'i> {
+/// Represents a range of characters representing a lexical token within a source.
+#[derive(Debug, PartialEq)]
+pub struct Token {
+    /// The kind of Token.
+    pub kind: TokenRule,
+    /// Span position (start, end)
+    pub span: Span,
+}
+
+impl Token {
+    pub fn new(kind: TokenRule, start: Position, end: Position) -> Token {
+        Token {
+            kind: kind,
+            span: Span(start, end),
+        }
+    }
+}
+
+/// TokenRule is the token type variants the lexer stream state will match on.
+#[derive(Debug, PartialEq)]
+pub enum TokenRule {
     // Single character tokens.
     Ampersand,
+    Asterik,
     Comma,
     Colon,
     Dot,
@@ -19,7 +41,6 @@ pub enum Token<'i> {
     RightSquare,
     Percentage,
     SemiColon,
-    Star,
     QuestionMark,
 
     // One or two character tokens.
@@ -42,9 +63,10 @@ pub enum Token<'i> {
     PlusPlus,
 
     // Literals.
-    Identifier(&'i str),
-    String(&'i str),
+    Identifier(String),
+    String(String),
     Number(f64),
+    Comment(String),
 
     // Keywords.
     ElseKw,
@@ -63,60 +85,61 @@ pub enum Token<'i> {
     WhileKw,
 }
 
-impl<'i> fmt::Display for Token<'i> {
+impl fmt::Display for TokenRule {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Token::Ampersand          => write!(fmt, "&"),
-            Token::Comma              => write!(fmt, ","),
-            Token::Colon              => write!(fmt, ":"),
-            Token::Dot                => write!(fmt, "."),
-            Token::FwdSlash           => write!(fmt, "/"),
-            Token::LeftParen          => write!(fmt, "("),
-            Token::RightParen         => write!(fmt, ")"),
-            Token::LeftBrace          => write!(fmt, "{{"),
-            Token::RightBrace         => write!(fmt, "}}"),
-            Token::LeftSquare         => write!(fmt, "["),
-            Token::RightSquare        => write!(fmt, "]"),
-            Token::Percentage         => write!(fmt, "%"),
-            Token::SemiColon          => write!(fmt, ";"),
-            Token::Star               => write!(fmt, "*"),
-            Token::QuestionMark       => write!(fmt, "?"),
-            Token::Bang               => write!(fmt, "!"),
-            Token::BangEqual          => write!(fmt, "!="),
-            Token::Cast               => write!(fmt, "->"),
-            Token::Equal              => write!(fmt, "="),
-            Token::EqualEqual         => write!(fmt, "=="),
-            Token::GreaterThan        => write!(fmt, ">"),
-            Token::GreaterThanOrEq    => write!(fmt, ">="),
-            Token::LessThan           => write!(fmt, "<"),
-            Token::LessThanOrEq       => write!(fmt, "<="),
-            Token::LogicalAnd         => write!(fmt, "&&"),
-            Token::LogicalOr          => write!(fmt, "||"),
-            Token::Minus              => write!(fmt, "-"),
-            Token::MinusMinus         => write!(fmt, "--"),
-            Token::Path               => write!(fmt, "::"),
-            Token::Pipe               => write!(fmt, "|"),
-            Token::Plus               => write!(fmt, "+"),
-            Token::PlusPlus           => write!(fmt, "++"),
+            TokenRule::Ampersand          => write!(fmt, "&"),
+            TokenRule::Asterik            => write!(fmt, "*"),
+            TokenRule::Comma              => write!(fmt, ","),
+            TokenRule::Colon              => write!(fmt, ":"),
+            TokenRule::Dot                => write!(fmt, "."),
+            TokenRule::FwdSlash           => write!(fmt, "/"),
+            TokenRule::LeftParen          => write!(fmt, "("),
+            TokenRule::RightParen         => write!(fmt, ")"),
+            TokenRule::LeftBrace          => write!(fmt, "{{"),
+            TokenRule::RightBrace         => write!(fmt, "}}"),
+            TokenRule::LeftSquare         => write!(fmt, "["),
+            TokenRule::RightSquare        => write!(fmt, "]"),
+            TokenRule::Percentage         => write!(fmt, "%"),
+            TokenRule::SemiColon          => write!(fmt, ";"),
+            TokenRule::QuestionMark       => write!(fmt, "?"),
+            TokenRule::Bang               => write!(fmt, "!"),
+            TokenRule::BangEqual          => write!(fmt, "!="),
+            TokenRule::Cast               => write!(fmt, "->"),
+            TokenRule::Equal              => write!(fmt, "="),
+            TokenRule::EqualEqual         => write!(fmt, "=="),
+            TokenRule::GreaterThan        => write!(fmt, ">"),
+            TokenRule::GreaterThanOrEq    => write!(fmt, ">="),
+            TokenRule::LessThan           => write!(fmt, "<"),
+            TokenRule::LessThanOrEq       => write!(fmt, "<="),
+            TokenRule::LogicalAnd         => write!(fmt, "&&"),
+            TokenRule::LogicalOr          => write!(fmt, "||"),
+            TokenRule::Minus              => write!(fmt, "-"),
+            TokenRule::MinusMinus         => write!(fmt, "--"),
+            TokenRule::Path               => write!(fmt, "::"),
+            TokenRule::Pipe               => write!(fmt, "|"),
+            TokenRule::Plus               => write!(fmt, "+"),
+            TokenRule::PlusPlus           => write!(fmt, "++"),
 
-            Token::Identifier(ref id) => id.fmt(fmt),
-            Token::String(ref s)      => write!(fmt, "\"{}\"", s),
-            Token::Number(ref num)    => num.fmt(fmt),
+            TokenRule::Identifier(ref id) => id.fmt(fmt),
+            TokenRule::String(ref s)      => write!(fmt, "\"{}\"", s),
+            TokenRule::Number(ref num)    => num.fmt(fmt),
+            TokenRule::Comment(ref c)     => write!(fmt, "{}", c),
 
-            Token::ElseKw             => write!(fmt, "else"),
-            Token::FalseKw            => write!(fmt, "false"),
-            Token::FuncKw             => write!(fmt, "fn"),
-            Token::ForKw              => write!(fmt, "for"),
-            Token::IfKw               => write!(fmt, "if"),
-            Token::NilKw              => write!(fmt, "nil"),
-            Token::PrintKw            => write!(fmt, "Print"),
-            Token::ReturnKw           => write!(fmt, "Return"),
-            Token::StructKw           => write!(fmt, "struct"),
-            Token::SelfKw             => write!(fmt, "self"),
-            Token::TrueKw             => write!(fmt, "true"),
-            Token::VarKw              => write!(fmt, "var"),
-            Token::VoidKw             => write!(fmt, "void"),
-            Token::WhileKw            => write!(fmt, "while"),
+            TokenRule::ElseKw             => write!(fmt, "else"),
+            TokenRule::FalseKw            => write!(fmt, "false"),
+            TokenRule::FuncKw             => write!(fmt, "fn"),
+            TokenRule::ForKw              => write!(fmt, "for"),
+            TokenRule::IfKw               => write!(fmt, "if"),
+            TokenRule::NilKw              => write!(fmt, "nil"),
+            TokenRule::PrintKw            => write!(fmt, "Print"),
+            TokenRule::ReturnKw           => write!(fmt, "Return"),
+            TokenRule::StructKw           => write!(fmt, "struct"),
+            TokenRule::SelfKw             => write!(fmt, "self"),
+            TokenRule::TrueKw             => write!(fmt, "true"),
+            TokenRule::VarKw              => write!(fmt, "var"),
+            TokenRule::VoidKw             => write!(fmt, "void"),
+            TokenRule::WhileKw            => write!(fmt, "while"),
         }
     }
 }

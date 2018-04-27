@@ -1,9 +1,6 @@
 pub mod binop;
 pub mod unop;
 
-use pest::{Error, Parser};
-use pest::iterators::{Pairs};
-
 use std::fmt;
 
 use self::binop::{ArithmeticOp, BitWiseOp, ComparisonOp, LogicalOp};
