@@ -17,19 +17,19 @@ pub struct LexerError {
 /// LexerErrorKind holds all the error variants for the Lexer state.
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum LexerErrorKind {
-    UnknownCharacter,
+    UnknownChar,
     InvalidNumericLiteral,
     UnterminatedStringLiteral,
-    InvalidEscapeCharacter
+    InvalidEscapeChar
 }
 
 impl From<LexerError> for LexicalDiagnostic {
     fn from(err: LexerError) -> LexicalDiagnostic {
         let message = match err.kind {
-            LexerErrorKind::UnknownCharacter => "unknown character",
-            LexerErrorKind::InvalidNumericLiteral => "invalid numeric literal",
+            LexerErrorKind::UnknownChar               => "unknown character",
+            LexerErrorKind::InvalidNumericLiteral     => "invalid numeric literal",
             LexerErrorKind::UnterminatedStringLiteral => "unexpected EOF while scanning string literal",
-            LexerErrorKind::InvalidEscapeCharacter => "invalid escape character"
+            LexerErrorKind::InvalidEscapeChar         => "invalid escape character"
         };
         LexicalDiagnostic {
             source:   err.source,

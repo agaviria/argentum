@@ -70,8 +70,8 @@ impl<'a> Iterator for Lexer<'a> {
 		loop {
 			match self.iter.peek().clone() {
 				Some(&'#') => self.skip_comment_line_and_ws(),
-				Some(_)   => return Some(self.token_stream_state()),
-				None      => return None
+				Some(_)    => return Some(self.token_stream_state()),
+				None       => return None
 			}
 
 		}
@@ -184,8 +184,9 @@ impl<'a> Lexer<'a> {
 			'-' => self.minus_or_cast_op(pos),
 			'"' => self.string_literal(pos),
 			chr if chr.is_alphabetic() => self.ident(chr, pos),
-			_   => self.span_err(error::LexerErrorKind::UnknownCharacter,
-													 pos, self.char_pos)
+			_   => {
+				self.span_err(error::LexerErrorKind::UnknownChar, pos, self.char_pos)
+			}
 		}
 	}
 
@@ -211,8 +212,13 @@ impl<'a> Lexer<'a> {
 				let paired = self.iter.peek().map(|x| *x);
 				let chr = match paired {
 					Some(chr) => chr,
-					None => return self.span_err(error::LexerErrorKind::UnterminatedStringLiteral,
-																			 start, self.char_pos)
+					None => {
+						return self.span_err(
+							error::LexerErrorKind::UnterminatedStringLiteral,
+							start,
+							self.char_pos
+							)
+					}
 				};
 				// iter.peek() already scanned `"` before entering this method call.
 				// If scanner pairs on `"`, then break out of loop.
@@ -255,7 +261,7 @@ impl<'a> Lexer<'a> {
 				}
 			}
 
-			// extracts keyword from match string dictionary function, keyword_dict().
+			// extracts keyword from keyword_dict().
 			let tkn = match token::keyword_dict(&buffer) {
 				Some(kw) => kw,
 				None     => Identifier(buffer)
@@ -267,6 +273,7 @@ impl<'a> Lexer<'a> {
 	/// Match on escape sequence representations.
 	fn escape_char(&mut self, start: Position) -> Result<char, LexicalDiagnostic> {
 		match self.bump() {
+			// match `chr` emits actual escape character representation.
 			Some(chr) => match chr {
 				'"'  => Ok('"'),
 				'\\' => Ok('\\'),
@@ -276,11 +283,21 @@ impl<'a> Lexer<'a> {
 				't'  => Ok('\t'),
 				'n'  => Ok('\n'),
 				'r'  => Ok('\r'),
-				_    => self.span_err(error::LexerErrorKind::InvalidEscapeCharacter,
-															start, self.char_pos)
+				_    => {
+					self.span_err(
+						error::LexerErrorKind::InvalidEscapeChar,
+						start,
+						self.char_pos
+						)
+				}
 			},
-			None => self.span_err(error::LexerErrorKind::UnterminatedStringLiteral,
-														start, self.char_pos)
+			None => {
+				self.span_err(
+					error::LexerErrorKind::UnterminatedStringLiteral,
+					start,
+					self.char_pos
+					)
+			}
 		}
 	}
 
