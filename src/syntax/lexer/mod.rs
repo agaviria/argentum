@@ -37,7 +37,7 @@ use std::iter::Peekable;
 use std::string::String;
 use std::str::Chars;
 
-use self::token::Token;
+// use self::token;
 use self::token::TokenRule::*;
 use error;
 
@@ -54,7 +54,7 @@ impl<'a> Iterator for Lexer<'a> {
 	/// The type of the elements being iterated over.
 	/// It returns a `Result`, where the `Ok` variant is a `Token`
 	/// and the `Err`is a LexerError encountered while scanning the input.
-	type Item = Result<Token, LexicalDiagnostic>;
+	type Item = Result<token::Token, LexicalDiagnostic>;
 
 	/// next `char` Lexer iterator.
 	/// The state can branch into (3) Lexer states:
@@ -166,73 +166,102 @@ impl<'a> Lexer<'a> {
 	}
 
 	/// The initial token stream consumption state.
-	fn token_stream_state(&mut self) -> Result<Token, LexicalDiagnostic> {
+	fn token_stream_state(&mut self) -> Result<token::Token, LexicalDiagnostic> {
 		let pos = self.char_pos;
 		// single character tokens are scanned and returned immediately.
 		match self.iter.next().unwrap() {
-			'(' => Ok(Token::new(LeftParen, self.char_pos, self.char_pos)),
-			')' => Ok(Token::new(RightParen, self.char_pos, self.char_pos)),
-			'{' => Ok(Token::new(LeftBrace, self.char_pos, self.char_pos)),
-			'}' => Ok(Token::new(RightBrace, self.char_pos, self.char_pos)),
-			'[' => Ok(Token::new(LeftSquare, self.char_pos, self.char_pos)),
-			']' => Ok(Token::new(RightSquare, self.char_pos, self.char_pos)),
-			';' => Ok(Token::new(SemiColon, self.char_pos, self.char_pos)),
-			'.' => Ok(Token::new(Dot, self.char_pos, self.char_pos)),
-			'*' => Ok(Token::new(Asterik, self.char_pos, self.char_pos)),
-			'%' => Ok(Token::new(Percentage, self.char_pos, self.char_pos)),
-			'?' => Ok(Token::new(QuestionMark, self.char_pos, self.char_pos)),
+			'(' => Ok(token::Token::new(LeftParen, self.char_pos, self.char_pos)),
+			')' => Ok(token::Token::new(RightParen, self.char_pos, self.char_pos)),
+			'{' => Ok(token::Token::new(LeftBrace, self.char_pos, self.char_pos)),
+			'}' => Ok(token::Token::new(RightBrace, self.char_pos, self.char_pos)),
+			'[' => Ok(token::Token::new(LeftSquare, self.char_pos, self.char_pos)),
+			']' => Ok(token::Token::new(RightSquare, self.char_pos, self.char_pos)),
+			';' => Ok(token::Token::new(SemiColon, self.char_pos, self.char_pos)),
+			'.' => Ok(token::Token::new(Dot, self.char_pos, self.char_pos)),
+			'*' => Ok(token::Token::new(Asterik, self.char_pos, self.char_pos)),
+			'%' => Ok(token::Token::new(Percentage, self.char_pos, self.char_pos)),
+			'?' => Ok(token::Token::new(QuestionMark, self.char_pos, self.char_pos)),
 			'-' => self.minus_or_cast_op(pos),
 			'"' => self.string_literal(pos),
+			chr if chr.is_alphabetic() => self.ident(chr, pos),
 			_   => self.span_err(error::LexerErrorKind::UnknownCharacter,
 													 pos, self.char_pos)
 		}
 	}
 
 	/// Emits a match on a minus operator '-' or cast operator '->'.
-	fn minus_or_cast_op(&mut self, start: Position) -> Result<Token, LexicalDiagnostic> {
-		if let Some(&'>') = self.iter.peek() {
-			// It is a `->` token.
-			let _ = self.bump();
-			Ok(Token::new(Cast, start, self.char_pos))
-		} else {
-			// It is a `-` token.
-			Ok(Token::new(Minus, start, self.char_pos))
+	fn minus_or_cast_op(&mut self, start: Position) ->
+		Result<token::Token, LexicalDiagnostic> {
+			if let Some(&'>') = self.iter.peek() {
+				// It is a `->` token.
+				let _ = self.bump();
+				Ok(token::Token::new(Cast, start, self.char_pos))
+			} else {
+				// It is a `-` token.
+				Ok(token::Token::new(Minus, start, self.char_pos))
+			}
 		}
-	}
 
 	/// string literal match on paired `chars`. Allows escape characters and
 	/// items that are not end quotes.
-	fn string_literal(&mut self, start: Position) -> Result<Token, LexicalDiagnostic> {
-		let mut buffer = String::new();
-		loop {
-			let paired = self.iter.peek().map(|x| *x);
-			let chr = match paired {
-				Some(chr) => chr,
-				None => return self.span_err(error::LexerErrorKind::UnterminatedStringLiteral,
-																		 start, self.char_pos)
-			};
-			// iter.peek() already scanned `"` before entering this method call.
-			// If scanner pairs on `"`, then break out of loop.
-			match chr {
-				'"' => {
-					let _ = self.bump().unwrap();
-					break;
-				},
-				'\\' => {
-					let _ = self.bump().unwrap();
-					let actual = self.escape_char(start)?;
-					buffer.push(actual)
-				},
-				chr => {
-					let _ = self.bump().unwrap();
-					buffer.push(chr);
+	fn string_literal(&mut self, start: Position) ->
+		Result<token::Token, LexicalDiagnostic> {
+			let mut buffer = String::new();
+			loop {
+				let paired = self.iter.peek().map(|x| *x);
+				let chr = match paired {
+					Some(chr) => chr,
+					None => return self.span_err(error::LexerErrorKind::UnterminatedStringLiteral,
+																			 start, self.char_pos)
+				};
+				// iter.peek() already scanned `"` before entering this method call.
+				// If scanner pairs on `"`, then break out of loop.
+				match chr {
+					'"' => {
+						let _ = self.bump().unwrap();
+						break;
+					},
+					'\\' | '/' | 'b' | 'f' => {
+						let _ = self.bump().unwrap();
+						let actual = self.escape_char(start)?;
+						buffer.push(actual)
+					},
+					chr => {
+						let _ = self.bump().unwrap();
+						buffer.push(chr);
+					}
 				}
 			}
+			// If code reaches here, the scanner has already found a closing double quote.
+			// String is the string literal AST representation for argentum language.
+			Ok(token::Token::new(StringLiteral(buffer), start, self.char_pos))
 		}
-		// If code reaches here, the scanner has already found a closing double quote.
-		// String is the string literal AST representation for argentum language.
-		Ok(Token::new(String(buffer), start, self.char_pos))
-	}
+
+	fn ident(&mut self, chr: char, start: Position) ->
+		Result<token::Token, LexicalDiagnostic> {
+			let mut buffer = String::new();
+			// the iterator points to an alphanumeric char.  ident() consumes it.
+			buffer.push(chr);
+			loop {
+				let paired = match self.iter.peek() {
+					Some(chr) => *chr,
+					None      => break
+				};
+				if paired.is_alphanumeric() || paired == '_' {
+					let _ = self.bump();
+					buffer.push(paired);
+				} else {
+					break;
+				}
+			}
+
+			// extracts keyword from match string dictionary function, keyword_dict().
+			let tkn = match token::keyword_dict(&buffer) {
+				Some(kw) => kw,
+				None     => Identifier(buffer)
+			};
+			Ok(token::Token::new(tkn, start, self.char_pos))
+		}
 
 	#[allow(dead_code)]
 	/// Match on escape sequence representations.
