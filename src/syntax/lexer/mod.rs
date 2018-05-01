@@ -182,6 +182,7 @@ impl<'a> Lexer<'a> {
 			'%' => Ok(token::Token::new(Percentage, self.char_pos, self.char_pos)),
 			'?' => Ok(token::Token::new(QuestionMark, self.char_pos, self.char_pos)),
 			'-' => self.minus_or_cast_op(pos),
+			'=' => self.assignment_or_equal_op(pos),
 			'"' => self.string_literal(pos),
 			chr if chr.is_alphabetic() => self.ident(chr, pos),
 			_   => {
@@ -200,6 +201,19 @@ impl<'a> Lexer<'a> {
 			} else {
 				// It is a `-` token.
 				Ok(token::Token::new(Minus, start, self.char_pos))
+			}
+		}
+
+	/// Assignment operator '=' OR equal operator '=='.
+	fn assignment_or_equal_op(&mut self, start: Position) ->
+		Result<token::Token, LexicalDiagnostic> {
+			if let Some(&'=') = self.iter.peek() {
+				// It is an equal operator `==` token.
+				let _ = self.bump();
+				Ok(token::Token::new(EqualEqual, start, self.char_pos))
+			} else {
+				// It is an assignment operator `=`.
+				Ok(token::Token::new(Equal, start, self.char_pos))
 			}
 		}
 
@@ -238,11 +252,11 @@ impl<'a> Lexer<'a> {
 					}
 				}
 			}
-			// If code reaches here, the scanner has already found a closing double quote.
-			// String is the string literal AST representation for argentum language.
+			// If code reached here, scanner has already found a closing double quote.
 			Ok(token::Token::new(StringLiteral(buffer), start, self.char_pos))
 		}
 
+	/// identifier.
 	fn ident(&mut self, chr: char, start: Position) ->
 		Result<token::Token, LexicalDiagnostic> {
 			let mut buffer = String::new();
@@ -269,7 +283,7 @@ impl<'a> Lexer<'a> {
 			Ok(token::Token::new(tkn, start, self.char_pos))
 		}
 
-	#[allow(dead_code)]
+#[allow(dead_code)]
 	/// Match on escape sequence representations.
 	fn escape_char(&mut self, start: Position) -> Result<char, LexicalDiagnostic> {
 		match self.bump() {
@@ -311,5 +325,4 @@ impl<'a> Lexer<'a> {
 				kind: kind
 			}))
 		}
-
 }

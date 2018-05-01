@@ -18,9 +18,11 @@ pub struct LexerError {
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum LexerErrorKind {
     UnknownChar,
+    Unreachable,
     InvalidNumericLiteral,
     UnterminatedStringLiteral,
-    InvalidEscapeChar
+    InvalidEscapeChar,
+    InvalidUnicodeEscSeqChar,
 }
 
 impl From<LexerError> for LexicalDiagnostic {
@@ -29,7 +31,9 @@ impl From<LexerError> for LexicalDiagnostic {
             LexerErrorKind::UnknownChar               => "unknown character",
             LexerErrorKind::InvalidNumericLiteral     => "invalid numeric literal",
             LexerErrorKind::UnterminatedStringLiteral => "unexpected EOF while scanning string literal",
-            LexerErrorKind::InvalidEscapeChar         => "invalid escape character"
+            LexerErrorKind::InvalidEscapeChar         => "invalid escape character",
+            LexerErrorKind::InvalidUnicodeEscSeqChar  => "invalid unicode escape sequence character",
+            LexerErrorKind::Unreachable               => "unreachable error"
         };
         LexicalDiagnostic {
             source:   err.source,
