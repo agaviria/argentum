@@ -181,8 +181,10 @@ impl<'a> Lexer<'a> {
 			'*' => Ok(token::Token::new(Asterik, self.char_pos, self.char_pos)),
 			'%' => Ok(token::Token::new(Percentage, self.char_pos, self.char_pos)),
 			'?' => Ok(token::Token::new(QuestionMark, self.char_pos, self.char_pos)),
-			'-' => self.minus_or_cast_op(pos),
 			'=' => self.assignment_or_equal_op(pos),
+			'>' => self.gt_or_gteq_op(pos),
+			'<' => self.lt_or_lteq_op(pos),
+			'-' => self.minus_or_cast_op(pos),
 			'"' => self.string_literal(pos),
 			chr if chr.is_alphabetic() => self.ident(chr, pos),
 			_   => {
@@ -214,6 +216,33 @@ impl<'a> Lexer<'a> {
 			} else {
 				// It is an assignment operator `=`.
 				Ok(token::Token::new(Equal, start, self.char_pos))
+			}
+		}
+
+	/// Less than operator '<' OR less than equal operator '<='.
+	fn lt_or_lteq_op(&mut self, start: Position) ->
+		Result<token::Token, LexicalDiagnostic> {
+			if let Some(&'=') = self.iter.peek() {
+				// It is a less than equal `<=` token.
+				let _ = self.bump();
+				Ok(token::Token::new(LessThanOrEq, start, self.char_pos))
+			} else {
+				// It is a less than comparison operator `<`.
+				Ok(token::Token::new(LessThan, start, self.char_pos))
+			}
+		}
+
+
+	/// Greater than operator '>' OR greater than equal operator '>='.
+	fn gt_or_gteq_op(&mut self, start: Position) ->
+		Result<token::Token, LexicalDiagnostic> {
+			if let Some(&'=') = self.iter.peek() {
+				// It is a less than equal `>=` token.
+				let _ = self.bump();
+				Ok(token::Token::new(GreaterThanOrEq, start, self.char_pos))
+			} else {
+				// It is a greater than comparision operator `>`.
+				Ok(token::Token::new(GreaterThan, start, self.char_pos))
 			}
 		}
 
